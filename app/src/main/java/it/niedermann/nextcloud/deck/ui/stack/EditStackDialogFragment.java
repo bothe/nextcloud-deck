@@ -1,5 +1,7 @@
 package it.niedermann.nextcloud.deck.ui.stack;
 
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditTextInputLayout;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -17,16 +19,11 @@ import java.util.Objects;
 
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.DialogStackCreateBinding;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
-
-import static it.niedermann.nextcloud.deck.DeckApplication.NO_STACK_ID;
-import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditText;
 
 public class EditStackDialogFragment extends BrandedDialogFragment {
     private static final String KEY_STACK_ID = "stack_id";
     private static final String KEY_OLD_TITLE = "old_title";
-    private long stackId = NO_STACK_ID;
     private EditStackListener editStackListener;
 
     private DialogStackCreateBinding binding;
@@ -46,20 +43,17 @@ public class EditStackDialogFragment extends BrandedDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         binding = DialogStackCreateBinding.inflate(requireActivity().getLayoutInflater());
 
-        AlertDialog.Builder builder = new BrandedAlertDialogBuilder(requireActivity())
+        final var builder = new AlertDialog.Builder(requireActivity())
                 .setView(binding.getRoot())
                 .setNeutralButton(android.R.string.cancel, null);
-        if (getArguments() == null) {
-            throw new IllegalArgumentException("Please add at least stack id to the arguments");
-        }
-        stackId = getArguments().getLong(KEY_STACK_ID);
-        if (stackId == NO_STACK_ID) {
+        final var args = getArguments();
+        if (args == null) {
             builder.setTitle(R.string.add_list)
                     .setPositiveButton(R.string.simple_add, (dialog, which) -> editStackListener.onCreateStack(binding.input.getText().toString()));
         } else {
-            binding.input.setText(getArguments().getString(KEY_OLD_TITLE));
+            binding.input.setText(args.getString(KEY_OLD_TITLE));
             builder.setTitle(R.string.rename_list)
-                    .setPositiveButton(R.string.simple_rename, (dialog, which) -> editStackListener.onUpdateStack(stackId, binding.input.getText().toString()));
+                    .setPositiveButton(R.string.simple_rename, (dialog, which) -> editStackListener.onUpdateStack(args.getLong(KEY_STACK_ID), binding.input.getText().toString()));
         }
         return builder.create();
     }
@@ -72,25 +66,23 @@ public class EditStackDialogFragment extends BrandedDialogFragment {
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
-    public static DialogFragment newInstance(long stackId) {
-        return newInstance(stackId, null);
+    public static DialogFragment newInstance() {
+        return new EditStackDialogFragment();
     }
 
     public static DialogFragment newInstance(long stackId, @Nullable String oldTitle) {
-        final DialogFragment dialog = new EditStackDialogFragment();
+        final var dialog = new EditStackDialogFragment();
 
-        final Bundle args = new Bundle();
+        final var args = new Bundle();
         args.putLong(KEY_STACK_ID, stackId);
-        if (oldTitle != null) {
-            args.putString(KEY_OLD_TITLE, oldTitle);
-        }
-        dialog.setArguments(args);
+        args.putString(KEY_OLD_TITLE, oldTitle);
 
+        dialog.setArguments(args);
         return dialog;
     }
 
     @Override
     public void applyBrand(int mainColor) {
-        applyBrandToEditText(mainColor, binding.input);
+        applyBrandToEditTextInputLayout(mainColor, binding.inputWrapper);
     }
 }

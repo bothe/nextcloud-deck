@@ -1,5 +1,8 @@
 package it.niedermann.nextcloud.deck.ui.movecard;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
@@ -21,9 +24,7 @@ import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
 import it.niedermann.nextcloud.deck.ui.branding.BrandingUtil;
 import it.niedermann.nextcloud.deck.ui.pickstack.PickStackFragment;
 import it.niedermann.nextcloud.deck.ui.pickstack.PickStackListener;
-
-import static android.view.View.GONE;
-import static android.view.View.VISIBLE;
+import it.niedermann.nextcloud.deck.ui.pickstack.PickStackViewModel;
 
 public class MoveCardDialogFragment extends BrandedDialogFragment implements PickStackListener {
 
@@ -31,12 +32,15 @@ public class MoveCardDialogFragment extends BrandedDialogFragment implements Pic
     private static final String KEY_ORIGIN_BOARD_LOCAL_ID = "board_local_id";
     private static final String KEY_ORIGIN_CARD_TITLE = "card_title";
     private static final String KEY_ORIGIN_CARD_LOCAL_ID = "card_local_id";
+    private static final String KEY_ORIGIN_CARD_HAS_ATTACHMENTS_OR_COMMENTS = "card_has_attachments_or_comments";
     private Long originAccountId;
     private Long originBoardLocalId;
     private String originCardTitle;
     private Long originCardLocalId;
+    private boolean originCardHasAttachmentsOrComments;
 
     private DialogMoveCardBinding binding;
+    private PickStackViewModel viewModel;
     private MoveCardListener moveCardListener;
 
     private Account selectedAccount;
@@ -67,6 +71,7 @@ public class MoveCardDialogFragment extends BrandedDialogFragment implements Pic
         if (originBoardLocalId < 0) {
             throw new IllegalArgumentException("Missing " + KEY_ORIGIN_BOARD_LOCAL_ID);
         }
+        originCardHasAttachmentsOrComments = args.getBoolean(KEY_ORIGIN_CARD_HAS_ATTACHMENTS_OR_COMMENTS, false);
         originCardTitle = args.getString(KEY_ORIGIN_CARD_TITLE);
     }
 
@@ -76,7 +81,7 @@ public class MoveCardDialogFragment extends BrandedDialogFragment implements Pic
         binding = DialogMoveCardBinding.inflate(inflater);
         binding.title.setText(getString(R.string.action_card_move_title, originCardTitle));
         binding.submit.setOnClickListener((v) -> {
-            DeckLog.verbose("[Move card] Attempt to move to " + Stack.class.getSimpleName() + " #" + selectedStack.getLocalId());
+            DeckLog.verbose("[Move card] Attempt to move to", Stack.class.getSimpleName(), "#" + selectedStack.getLocalId());
             this.moveCardListener.move(originAccountId, originCardLocalId, selectedAccount.getId(), selectedBoard.getLocalId(), selectedStack.getLocalId());
             dismiss();
         });
@@ -102,7 +107,7 @@ public class MoveCardDialogFragment extends BrandedDialogFragment implements Pic
             binding.moveWarning.setVisibility(GONE);
         } else {
             binding.submit.setEnabled(true);
-            binding.moveWarning.setVisibility(board.getLocalId().equals(originBoardLocalId) ? GONE : VISIBLE);
+            binding.moveWarning.setVisibility(originCardHasAttachmentsOrComments && !board.getLocalId().equals(originBoardLocalId) ? VISIBLE : GONE);
         }
     }
 
@@ -113,14 +118,15 @@ public class MoveCardDialogFragment extends BrandedDialogFragment implements Pic
         binding.submit.setTextColor(mainColorStateList);
     }
 
-    public static DialogFragment newInstance(long originAccountId, long originBoardLocalId, String originCardTitle, Long originCardLocalId) {
-        final DialogFragment dialogFragment = new MoveCardDialogFragment();
-        final Bundle args = new Bundle();
+    public static DialogFragment newInstance(long originAccountId, long originBoardLocalId, String originCardTitle, Long originCardLocalId, boolean hasAttachmentsOrComments) {
+        final var fragment = new MoveCardDialogFragment();
+        final var args = new Bundle();
         args.putLong(KEY_ORIGIN_ACCOUNT_ID, originAccountId);
         args.putLong(KEY_ORIGIN_BOARD_LOCAL_ID, originBoardLocalId);
         args.putString(KEY_ORIGIN_CARD_TITLE, originCardTitle);
         args.putLong(KEY_ORIGIN_CARD_LOCAL_ID, originCardLocalId);
-        dialogFragment.setArguments(args);
-        return dialogFragment;
+        args.putBoolean(KEY_ORIGIN_CARD_HAS_ATTACHMENTS_OR_COMMENTS, hasAttachmentsOrComments);
+        fragment.setArguments(args);
+        return fragment;
     }
 }

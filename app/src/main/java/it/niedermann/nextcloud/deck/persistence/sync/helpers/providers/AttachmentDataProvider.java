@@ -1,14 +1,15 @@
 package it.niedermann.nextcloud.deck.persistence.sync.helpers.providers;
 
+import android.annotation.SuppressLint;
 import android.net.Uri;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 import it.niedermann.nextcloud.deck.DeckLog;
-import it.niedermann.nextcloud.deck.api.IResponseCallback;
+import it.niedermann.nextcloud.deck.api.ResponseCallback;
 import it.niedermann.nextcloud.deck.model.Attachment;
 import it.niedermann.nextcloud.deck.model.Board;
 import it.niedermann.nextcloud.deck.model.Stack;
@@ -32,7 +33,7 @@ public class AttachmentDataProvider extends AbstractSyncDataProvider<Attachment>
     }
 
     @Override
-    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<List<Attachment>> responder, Date lastSync) {
+    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<List<Attachment>> responder, Instant lastSync) {
         responder.onResponse(attachments);
     }
 
@@ -65,9 +66,9 @@ public class AttachmentDataProvider extends AbstractSyncDataProvider<Attachment>
     }
 
     @Override
-    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<Attachment> responder, Attachment entity) {
+    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<Attachment> responder, Attachment entity) {
         File file = new File(entity.getLocalPath());
-        serverAdapter.uploadAttachment(board.getId(), stack.getId(), card.getId(), entity.getType(), file, new IResponseCallback<Attachment>(responder.getAccount()) {
+        serverAdapter.uploadAttachment(board.getId(), stack.getId(), card.getId(), file, new ResponseCallback<>(responder.getAccount()) {
             @Override
             public void onResponse(Attachment response) {
                 if (file.delete()) {
@@ -77,10 +78,11 @@ public class AttachmentDataProvider extends AbstractSyncDataProvider<Attachment>
                 }
             }
 
+            @SuppressLint("MissingSuperCall")
             @Override
             public void onError(Throwable throwable) {
                 if (!file.delete()) {
-                    DeckLog.error("Could not delete local file: " + file.getAbsolutePath());
+                    DeckLog.error("Could not delete local file:", file.getAbsolutePath());
                 }
                 // if (HandledServerErrors.ATTACHMENTS_FILE_ALREADY_EXISTS == HandledServerErrors.fromThrowable(throwable)) {
                 dataBaseAdapter.deleteAttachment(accountId, entity, false);
@@ -91,7 +93,7 @@ public class AttachmentDataProvider extends AbstractSyncDataProvider<Attachment>
     }
 
     @Override
-    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<Attachment> callback, Attachment entity) {
+    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<Attachment> callback, Attachment entity) {
         Uri uri = Uri.fromFile(new File(entity.getLocalPath()));
         String type = dataBaseAdapter.getContext().getContentResolver().getType(uri);
         serverAdapter.updateAttachment(board.getId(), stack.getId(), card.getId(), entity.getId(), type, uri, callback);
@@ -99,12 +101,12 @@ public class AttachmentDataProvider extends AbstractSyncDataProvider<Attachment>
     }
 
     @Override
-    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<Void> callback, Attachment entity, DataBaseAdapter dataBaseAdapter) {
+    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<Void> callback, Attachment entity, DataBaseAdapter dataBaseAdapter) {
         serverAdapter.deleteAttachment(board.getId(), stack.getId(), card.getId(), entity.getId(), callback);
     }
 
     @Override
-    public List<Attachment> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Date lastSync) {
+    public List<Attachment> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Instant lastSync) {
         return dataBaseAdapter.getLocallyChangedAttachmentsByLocalCardIdDirectly(accountId, card.getLocalId());
     }
 
@@ -120,7 +122,7 @@ public class AttachmentDataProvider extends AbstractSyncDataProvider<Attachment>
             dataBaseAdapter.deleteAttachment(accountId, attachment, false);
         }
         for (Attachment attachment : entitiesFromServer) {
-            if (attachment.getDeletedAt() != null && attachment.getDeletedAt().getTime() != 0) {
+            if (attachment.getDeletedAt() != null && attachment.getDeletedAt().toEpochMilli() != 0) {
                 Attachment toDelete = dataBaseAdapter.getAttachmentByRemoteIdDirectly(accountId, attachment.getId());
                 if (toDelete != null) {
                     dataBaseAdapter.deleteAttachment(accountId, toDelete, false);

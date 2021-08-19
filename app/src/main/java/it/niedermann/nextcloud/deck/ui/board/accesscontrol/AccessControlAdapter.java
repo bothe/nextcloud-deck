@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,7 +28,6 @@ import it.niedermann.nextcloud.deck.ui.branding.Branded;
 import it.niedermann.nextcloud.deck.util.ViewUtil;
 
 import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.getSecondaryForegroundColorDependingOnTheme;
-import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.isBrandingEnabled;
 
 public class AccessControlAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Branded {
 
@@ -51,7 +51,7 @@ public class AccessControlAdapter extends RecyclerView.Adapter<RecyclerView.View
         this.account = account;
         this.accessControlChangedListener = accessControlChangedListener;
         this.context = context;
-        this.mainColor = context.getResources().getColor(R.color.primary);
+        this.mainColor = ContextCompat.getColor(context, R.color.primary);
         setHasStableIds(true);
     }
 
@@ -92,7 +92,8 @@ public class AccessControlAdapter extends RecyclerView.Adapter<RecyclerView.View
                 ViewUtil.addAvatar(acHolder.binding.avatar, account.getUrl(), ac.getUser().getUid(), R.drawable.ic_person_grey600_24dp);
 
                 acHolder.binding.username.setText(ac.getUser().getDisplayname());
-                acHolder.binding.username.setCompoundDrawables(null, null, ac.getStatus() == DBStatus.LOCAL_EDITED.getId() ? context.getResources().getDrawable(R.drawable.ic_sync_blue_24dp) : null, null);
+                acHolder.binding.username.setCompoundDrawables(null, null, ac.getStatus() == DBStatus.LOCAL_EDITED.getId()
+                        ? ContextCompat.getDrawable(context, R.drawable.ic_sync_blue_24dp) : null, null);
                 acHolder.binding.delete.setOnClickListener((v) -> accessControlChangedListener.deleteAccessControl(ac));
 
                 if (hasManagePermission) {
@@ -121,13 +122,11 @@ public class AccessControlAdapter extends RecyclerView.Adapter<RecyclerView.View
                     accessControlChangedListener.updateAccessControl(ac);
                 });
 
-                if (isBrandingEnabled(context)) {
-                    if (hasManagePermission) {
-                        brandSwitch(context, acHolder.binding.permissionEdit, mainColor);
-                        brandSwitch(context, acHolder.binding.permissionManage, mainColor);
-                    }
-                    brandSwitch(context, acHolder.binding.permissionShare, mainColor);
+                if (hasManagePermission) {
+                    brandSwitch(context, acHolder.binding.permissionEdit, mainColor);
+                    brandSwitch(context, acHolder.binding.permissionManage, mainColor);
                 }
+                brandSwitch(context, acHolder.binding.permissionShare, mainColor);
                 break;
             }
         }
@@ -159,10 +158,8 @@ public class AccessControlAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     @Override
     public void applyBrand(int mainColor) {
-        if (isBrandingEnabled(context)) {
-            this.mainColor = getSecondaryForegroundColorDependingOnTheme(context, mainColor);
-            notifyDataSetChanged();
-        }
+        this.mainColor = getSecondaryForegroundColorDependingOnTheme(context, mainColor);
+        notifyDataSetChanged();
     }
 
     /**
@@ -172,9 +169,9 @@ public class AccessControlAdapter extends RecyclerView.Adapter<RecyclerView.View
         final int finalMainColor = getSecondaryForegroundColorDependingOnTheme(context, mainColor);
         DrawableCompat.setTintList(switchCompat.getThumbDrawable(), new ColorStateList(
                 new int[][]{new int[]{android.R.attr.state_checked}, new int[]{}},
-                new int[]{finalMainColor, context.getResources().getColor(R.color.fg_secondary)}
+                new int[]{finalMainColor, ContextCompat.getColor(context, R.color.fg_secondary)}
         ));
-        final int trackColor = context.getResources().getColor(R.color.fg_secondary);
+        final int trackColor = ContextCompat.getColor(context, R.color.fg_secondary);
         final int lightTrackColor = Color.argb(77, Color.red(trackColor), Color.green(trackColor), Color.blue(trackColor));
         final int lightTrackColorChecked = Color.argb(77, Color.red(finalMainColor), Color.green(finalMainColor), Color.blue(finalMainColor));
         DrawableCompat.setTintList(switchCompat.getTrackDrawable(), new ColorStateList(

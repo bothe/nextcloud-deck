@@ -18,23 +18,18 @@ import retrofit2.NextcloudRetrofitApiBuilder;
 /**
  * Created by david on 26.05.17.
  */
-
 public class ApiProvider {
 
-    private static final String DECK_API_ENDPOINT = "/index.php/apps/deck/api/v1.0/";
+    private static final String DECK_API_ENDPOINT = "/index.php/apps/deck/api/";
     private static final String NC_API_ENDPOINT = "/ocs/v2.php/";
 
     private DeckAPI deckAPI;
     private NextcloudServerAPI nextcloudAPI;
     @NonNull
-    private Context context;
-    private SingleSignOnAccount ssoAccount;
+    private final Context context;
     @Nullable
-    private String ssoAccountName;
-
-    public ApiProvider(Context context) {
-        this(context, null);
-    }
+    private final String ssoAccountName;
+    private SingleSignOnAccount ssoAccount;
 
     public ApiProvider(@NonNull Context context, @Nullable String ssoAccountName) {
         this.context = context;
@@ -42,10 +37,12 @@ public class ApiProvider {
         setAccount();
     }
 
-    public void initSsoApi(final NextcloudAPI.ApiConnectedListener callback) {
-        final NextcloudAPI nextcloudAPI = new NextcloudAPI(context, ssoAccount, GsonConfig.getGson(), callback);
-        deckAPI = new NextcloudRetrofitApiBuilder(nextcloudAPI, DECK_API_ENDPOINT).create(DeckAPI.class);
-        this.nextcloudAPI = new NextcloudRetrofitApiBuilder(nextcloudAPI, NC_API_ENDPOINT).create(NextcloudServerAPI.class);
+    public synchronized void initSsoApi(@NonNull final NextcloudAPI.ApiConnectedListener callback) {
+        if(this.deckAPI == null) {
+            final NextcloudAPI nextcloudAPI = new NextcloudAPI(context, ssoAccount, GsonConfig.getGson(), callback);
+            this.deckAPI = new NextcloudRetrofitApiBuilder(nextcloudAPI, DECK_API_ENDPOINT).create(DeckAPI.class);
+            this.nextcloudAPI = new NextcloudRetrofitApiBuilder(nextcloudAPI, NC_API_ENDPOINT).create(NextcloudServerAPI.class);
+        }
     }
 
     private void setAccount() {

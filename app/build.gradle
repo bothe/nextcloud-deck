@@ -1,22 +1,22 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
     defaultConfig {
         applicationId "it.niedermann.nextcloud.deck"
-        minSdkVersion 17
-        targetSdkVersion 29
-        versionCode 1009007
-        versionName "1.9.7"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1019003
+        versionName "1.19.3"
+        vectorDrawables.useSupportLibrary true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables.useSupportLibrary = true
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
             }
         }
-        multiDexEnabled true
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures {
         viewBinding true
@@ -32,8 +32,9 @@ android {
         abortOnError false
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     flavorDimensions "version"
     productFlavors {
@@ -48,86 +49,81 @@ android {
             dimension "version"
             applicationIdSuffix ".play"
         }
+        pfungstadt {
+            dimension "version"
+            applicationIdSuffix ".pfungstadt"
+        }
+    }
+    testOptions {
+        unitTests {
+            includeAndroidResources true
+        }
     }
 }
 
 dependencies {
-    // Single-Sign-On
-//    implementation 'com.github.nextcloud:Android-SingleSignOn:0.5.2'
-    implementation 'com.github.desperateCoder:Android-SingleSignOn:231-void-return-type-SNAPSHOT'
+    // Cross tab drag'n'drop
+    implementation project(path: ':cross-tab-drag-and-drop')
+    // TabLayoutHelper
+    implementation project(path: ':tab-layout-helper')
 
-    // --------------------
-    // --- UI-Libraries ---
-    // --------------------
-
-    // Glide
-    implementation 'com.github.bumptech.glide:glide:4.11.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
-    implementation project(path: ':glide-sso-integration')
-
-    // Markdown
-    implementation 'com.yydcdut:markdown-processor:0.1.3'
-    implementation 'com.yydcdut:rxmarkdown-wrapper:0.1.3'
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
     // Android X
-    implementation 'com.google.android.material:material:1.2.1'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation "androidx.viewpager2:viewpager2:1.0.0"
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.work:work-runtime:2.4.0'
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'androidx.camera:camera-camera2:1.1.0-alpha07'
+    implementation 'androidx.camera:camera-lifecycle:1.1.0-alpha07'
+    implementation 'androidx.camera:camera-view:1.0.0-alpha27'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
     implementation 'androidx.preference:preference:1.1.1'
+    def roomVersion = "2.3.0"
+    implementation "androidx.room:room-runtime:$roomVersion"
+    annotationProcessor "androidx.room:room-compiler:$roomVersion"
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.work:work-runtime:2.5.0'
+    implementation "com.google.android.material:material:$rootProject.materialVersion"
+
+    // Glide
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
+
+    // Image compression
+    implementation 'id.zelory:compressor:3.0.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
+
+    // Markdown
+    implementation 'com.github.stefan-niedermann:nextcloud-notes:3.4.11'
+
+    // Single-Sign-On
+    implementation 'com.github.nextcloud:Android-SingleSignOn:0.5.6'
+    implementation 'com.github.stefan-niedermann.nextcloud-commons:sso-glide:1.4.0'
+    implementation 'com.github.stefan-niedermann.nextcloud-commons:exception:1.4.0'
+    implementation 'com.github.stefan-niedermann.android-commons:util:0.2.0'
+    implementation 'com.github.stefan-niedermann.android-commons:shared-preferences:0.2.0'
 
     // Custom Date / Time Picker for branding support
     implementation 'com.wdullaer:materialdatetimepicker:4.2.3'
 
-    // Android backport for java.time
-    implementation 'com.jakewharton.threetenabp:threetenabp:1.2.4'
-
     // Flexbox
-    implementation 'com.google.android:flexbox:2.0.1'
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
 
     // Custom Color Picker
-    implementation 'com.github.skydoves:colorpickerpreference:2.0.0'
+    implementation 'com.github.skydoves:colorpickerview:2.2.3'
 
-    // Cross tab drag'n'drop
-    implementation project(path: ':cross-tab-drag-and-drop')
-
-    // TabLayoutHelper
-    implementation project(path: ':tab-layout-helper')
-
-
-    // -------------------------
-    // --- Backend-Libraries ---
-    // -------------------------
-
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.4.10'
-
-    // Room components
-    implementation "androidx.room:room-runtime:$rootProject.roomVersion"
-    annotationProcessor "androidx.room:room-compiler:$rootProject.roomVersion"
-    androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
+    // Gson
+    implementation 'com.google.code.gson:gson:2.8.7'
 
     // Retrofit
-    implementation "com.squareup.retrofit2:adapter-rxjava2:$rootProject.retrofitVersion"
-    implementation 'com.google.code.gson:gson:2.8.6'
-    implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"
-    implementation "com.squareup.retrofit2:converter-gson:$rootProject.retrofitVersion"
+    //noinspection GradleDependency
+    implementation 'com.squareup.retrofit2:retrofit:2.6.4'
 
-    // -----------------------
-    // --- Other libraries ---
-    // -----------------------
-
-    implementation 'androidx.multidex:multidex:2.0.1'
-
-
-    // -------------
-    // --- Tests ---
-    // -------------
+    // ReactiveX
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
 
     // Tests
-    testImplementation 'junit:junit:4.13'
-    androidTestImplementation 'androidx.test:runner:1.3.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.6.1'
+    testImplementation 'org.mockito:mockito-core:3.11.2'
+    testImplementation 'androidx.test:core:1.4.0'
+    testImplementation 'androidx.arch.core:core-testing:2.1.0'
 }

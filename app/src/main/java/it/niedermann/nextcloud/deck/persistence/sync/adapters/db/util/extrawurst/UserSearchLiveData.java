@@ -5,7 +5,7 @@ import androidx.lifecycle.MediatorLiveData;
 import java.util.List;
 
 import it.niedermann.nextcloud.deck.DeckLog;
-import it.niedermann.nextcloud.deck.api.IResponseCallback;
+import it.niedermann.nextcloud.deck.api.ResponseCallback;
 import it.niedermann.nextcloud.deck.exceptions.OfflineException;
 import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.model.User;
@@ -18,12 +18,12 @@ import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.DataBaseAdapter
 public class UserSearchLiveData extends MediatorLiveData<List<User>> implements Debouncer.Callback<Long> {
 
     private static final int DEBOUNCE_TIME = 300; // ms
-    private DataBaseAdapter db;
-    private ServerAdapter server;
+    private final DataBaseAdapter db;
+    private final ServerAdapter server;
     long accountId;
     String searchTerm;
     long notYetAssignedInACL;
-    private Debouncer<Long> debouncer = new Debouncer<>(this, DEBOUNCE_TIME);
+    private final Debouncer<Long> debouncer = new Debouncer<>(this, DEBOUNCE_TIME);
 
     public UserSearchLiveData(DataBaseAdapter db, ServerAdapter server) {
         this.db = db;
@@ -52,7 +52,7 @@ public class UserSearchLiveData extends MediatorLiveData<List<User>> implements 
         if (server.hasInternetConnection()) {
             try {
                 Account account = db.getAccountByIdDirectly(accountId);
-                server.searchUser(term, new IResponseCallback<OcsUserList>(account) {
+                server.searchUser(term, new ResponseCallback<>(account) {
                     @Override
                     public void onResponse(OcsUserList response) {
                         if (response == null || response.getUsers().isEmpty()){

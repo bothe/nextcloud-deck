@@ -1,28 +1,27 @@
 package it.niedermann.nextcloud.deck.model.ocs;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import it.niedermann.nextcloud.deck.R;
+import it.niedermann.nextcloud.deck.model.Attachment;
 import it.niedermann.nextcloud.deck.model.ocs.comment.DeckComment;
 
 public class Version implements Comparable<Version> {
     private static final Pattern NUMBER_EXTRACTION_PATTERN = Pattern.compile("[0-9]+");
+    private static final Version VERSION_0_6_4 = new Version("0.6.4", 0, 6, 4);
     private static final Version VERSION_1_0_0 = new Version("1.0.0", 1, 0, 0);
     private static final Version VERSION_1_0_3 = new Version("1.0.3", 1, 0, 3);
-    @Nullable
-    private static Version VERSION_MINIMUM_SUPPORTED;
+    private static final Version VERSION_1_3_0 = new Version("1.3.0", 1, 3, 0);
 
     private String originalVersion = "?";
-    private int major = 0;
-    private int minor = 0;
-    private int patch = 0;
+    private int major;
+    private int minor;
+    private int patch;
 
     public Version(String originalVersion, int major, int minor, int patch) {
         this(major, minor, patch);
@@ -62,7 +61,7 @@ public class Version implements Comparable<Version> {
     public static Version of(String versionString) {
         int major = 0, minor = 0, micro = 0;
         if (versionString != null) {
-            String[] split = versionString.split("\\.");
+            final String[] split = versionString.split("\\.");
             if (split.length > 0) {
                 major = extractNumber(split[0]);
                 if (split.length > 1) {
@@ -85,18 +84,12 @@ public class Version implements Comparable<Version> {
     }
 
     @NonNull
-    public static Version minimumSupported(@NonNull Context context) {
-        if (VERSION_MINIMUM_SUPPORTED == null) {
-            final int minimumServerAppMajor = context.getResources().getInteger(R.integer.minimum_server_app_major);
-            final int minimumServerAppMinor = context.getResources().getInteger(R.integer.minimum_server_app_minor);
-            final int minimumServerAppPatch = context.getResources().getInteger(R.integer.minimum_server_app_patch);
-            VERSION_MINIMUM_SUPPORTED = new Version(minimumServerAppMajor + "." + minimumServerAppMinor + "." + minimumServerAppPatch, minimumServerAppMajor, minimumServerAppMinor, minimumServerAppPatch);
-        }
-        return VERSION_MINIMUM_SUPPORTED;
+    public static Version minimumSupported() {
+        return VERSION_0_6_4;
     }
 
-    public boolean isSupported(@NonNull Context context) {
-        return isGreaterOrEqualTo(Version.minimumSupported(context));
+    public boolean isSupported() {
+        return isGreaterOrEqualTo(minimumSupported());
     }
 
     /**
@@ -121,6 +114,19 @@ public class Version implements Comparable<Version> {
             return 1;
         }
         return 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Version version = (Version) o;
+        return compareTo(version) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(originalVersion, major, minor, patch);
     }
 
     @NonNull
@@ -155,6 +161,20 @@ public class Version implements Comparable<Version> {
     }
 
     /**
+     * Before {@link #VERSION_1_3_0} all {@link Attachment}s have been stored in a special folder at the server.
+     * Starting with {@link #VERSION_1_3_0} {@link Attachment}s can be stored as regular files, allowing for example to make use of server side thumbnail generation.
+     * <p>
+     * Since the migration takes a long time, it does not happen on upgrading the server app but step by step via a cronjob.
+     * Therefore this method is just an indicator, that it is possible that {@link Attachment}s are stored as files, but it is no guarantee that all {@link Attachment}s already have been migrated to files.
+     *
+     * @return whether or not the server supports file attachments
+     * @see <a href="https://github.com/nextcloud/deck/pull/2638">documentation in PR</a>
+     */
+    public boolean supportsFileAttachments() {
+        return isGreaterOrEqualTo(VERSION_1_3_0);
+    }
+
+    /**
      * Title max length has been increased from 100 to 255 characters beginning with server {@link Version} 1.0.0
      *
      * @return the number of characters that the title fields of cards allow
@@ -165,6 +185,7 @@ public class Version implements Comparable<Version> {
                 ? 255
                 : 100;
     }
+
     /**
      * URL to view a card in the web interface has been changed in {@link Version} 1.0.0
      *

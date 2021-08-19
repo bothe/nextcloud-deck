@@ -1,10 +1,12 @@
 package it.niedermann.nextcloud.deck.persistence.sync.helpers.providers;
 
-import java.util.Date;
+import android.annotation.SuppressLint;
+
+import java.time.Instant;
 import java.util.List;
 
 import it.niedermann.nextcloud.deck.DeckLog;
-import it.niedermann.nextcloud.deck.api.IResponseCallback;
+import it.niedermann.nextcloud.deck.api.ResponseCallback;
 import it.niedermann.nextcloud.deck.exceptions.HandledServerErrors;
 import it.niedermann.nextcloud.deck.model.Board;
 import it.niedermann.nextcloud.deck.model.Label;
@@ -13,14 +15,14 @@ import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.DataBaseAdapter
 
 public class LabelDataProvider extends AbstractSyncDataProvider<Label> {
 
-    private List<Label> labels;
-    private Board board;
+    private final List<Label> labels;
+    private final Board board;
 
     public LabelDataProvider(AbstractSyncDataProvider<?> parent, Board board, List<Label> labels) {
         super(parent);
         this.board = board;
         this.labels = labels;
-        if (this.labels!= null && board != null){
+        if (this.labels != null && board != null) {
             for (Label label : labels) {
                 label.setBoardId(board.getLocalId());
             }
@@ -28,7 +30,7 @@ public class LabelDataProvider extends AbstractSyncDataProvider<Label> {
     }
 
     @Override
-    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<List<Label>> responder, Date lastSync) {
+    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<List<Label>> responder, Instant lastSync) {
         responder.onResponse(labels);
     }
 
@@ -45,7 +47,7 @@ public class LabelDataProvider extends AbstractSyncDataProvider<Label> {
             updateInDB(dataBaseAdapter, accountId, entity, false);
             return entity.getLocalId();
         } else {
-            return dataBaseAdapter.createLabel(accountId, entity);
+            return dataBaseAdapter.createLabelDirectly(accountId, entity);
         }
     }
 
@@ -54,17 +56,18 @@ public class LabelDataProvider extends AbstractSyncDataProvider<Label> {
         dataBaseAdapter.updateLabel(entity, setStatus);
     }
 
-    private IResponseCallback<Label> getLabelUniqueHandler(DataBaseAdapter dataBaseAdapter, Label entitiy, IResponseCallback<Label> responder){
-        return new IResponseCallback<Label>(responder.getAccount()) {
+    private ResponseCallback<Label> getLabelUniqueHandler(DataBaseAdapter dataBaseAdapter, Label entitiy, ResponseCallback<Label> responder) {
+        return new ResponseCallback<>(responder.getAccount()) {
             @Override
             public void onResponse(Label response) {
                 responder.onResponse(response);
             }
 
+            @SuppressLint("MissingSuperCall")
             @Override
             public void onError(Throwable throwable) {
-                if (HandledServerErrors.LABELS_TITLE_MUST_BE_UNIQUE == HandledServerErrors.fromThrowable(throwable)){
-                    DeckLog.log(throwable.getCause().getMessage() + ": " + entitiy.toString());
+                if (HandledServerErrors.LABELS_TITLE_MUST_BE_UNIQUE == HandledServerErrors.fromThrowable(throwable)) {
+                    DeckLog.log(throwable.getCause().getMessage() + ":", entitiy);
                     dataBaseAdapter.deleteLabelPhysically(entitiy);
                     responder.onResponse(entitiy);
                 } else {
@@ -80,7 +83,7 @@ public class LabelDataProvider extends AbstractSyncDataProvider<Label> {
     }
 
     @Override
-    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<Label> responder, Label entity) {
+    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<Label> responder, Label entity) {
         entity.setBoardId(board.getId());
         serverAdapter.createLabel(board.getId(), entity, getLabelUniqueHandler(dataBaseAdapter, entity, responder));
     }
@@ -91,17 +94,17 @@ public class LabelDataProvider extends AbstractSyncDataProvider<Label> {
     }
 
     @Override
-    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<Void> callback, Label entity, DataBaseAdapter dataBaseAdapter) {
+    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<Void> callback, Label entity, DataBaseAdapter dataBaseAdapter) {
         serverAdapter.deleteLabel(board.getId(), entity, callback);
     }
 
     @Override
-    public List<Label> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Date lastSync) {
+    public List<Label> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Instant lastSync) {
         return labels;
     }
 
     @Override
-    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<Label> callback, Label entity) {
+    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<Label> callback, Label entity) {
         serverAdapter.updateLabel(board.getId(), entity, getLabelUniqueHandler(dataBaseAdapter, entity, callback));
     }
 
@@ -109,7 +112,7 @@ public class LabelDataProvider extends AbstractSyncDataProvider<Label> {
     public void handleDeletes(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, List<Label> entitiesFromServer) {
         List<Label> deletedLabels = findDelta(labels, dataBaseAdapter.getFullBoardByLocalIdDirectly(accountId, board.getLocalId()).getLabels());
         for (Label deletedLabel : deletedLabels) {
-            if (deletedLabel.getId()!=null){
+            if (deletedLabel.getId() != null) {
                 // preserve new, unsynced card.
                 dataBaseAdapter.deleteLabelPhysically(deletedLabel);
             }

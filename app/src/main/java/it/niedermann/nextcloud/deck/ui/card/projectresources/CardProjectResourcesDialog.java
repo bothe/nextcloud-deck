@@ -18,11 +18,9 @@ import java.util.Objects;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.DialogProjectResourcesBinding;
 import it.niedermann.nextcloud.deck.model.ocs.projects.OcsProjectResource;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
 import it.niedermann.nextcloud.deck.ui.card.EditCardViewModel;
 
-public class CardProjectResourcesDialog extends BrandedDialogFragment {
+public class CardProjectResourcesDialog extends DialogFragment {
 
     private static final String KEY_RESOURCES = "resources";
     private static final String KEY_PROJECT_NAME = "projectName";
@@ -31,12 +29,12 @@ public class CardProjectResourcesDialog extends BrandedDialogFragment {
 
     private String projectName;
     @NonNull
-    private List<OcsProjectResource> resources = new ArrayList<>();
+    private final List<OcsProjectResource> resources = new ArrayList<>();
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        final Bundle args = requireArguments();
+        final var args = requireArguments();
         if (!args.containsKey(KEY_RESOURCES)) {
             throw new IllegalArgumentException("Provide at least " + KEY_RESOURCES);
         }
@@ -51,9 +49,7 @@ public class CardProjectResourcesDialog extends BrandedDialogFragment {
         binding = DialogProjectResourcesBinding.inflate(LayoutInflater.from(requireContext()));
         viewModel = new ViewModelProvider(requireActivity()).get(EditCardViewModel.class);
 
-        AlertDialog.Builder dialogBuilder = new BrandedAlertDialogBuilder(requireContext());
-
-        return dialogBuilder
+        return new AlertDialog.Builder(requireContext())
                 .setTitle(projectName)
                 .setView(binding.getRoot())
                 .setNeutralButton(R.string.simple_close, null)
@@ -62,19 +58,14 @@ public class CardProjectResourcesDialog extends BrandedDialogFragment {
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        final CardProjectResourceAdapter adapter = new CardProjectResourceAdapter(viewModel.getAccount(), resources, requireActivity());
+        final var adapter = new CardProjectResourceAdapter(viewModel, resources, requireActivity());
         binding.getRoot().setAdapter(adapter);
         super.onActivityCreated(savedInstanceState);
     }
 
-    @Override
-    public void applyBrand(int mainColor) {
-
-    }
-
     public static DialogFragment newInstance(@Nullable String projectName, @NonNull List<OcsProjectResource> resources) {
-        final DialogFragment fragment = new CardProjectResourcesDialog();
-        final Bundle args = new Bundle();
+        final var fragment = new CardProjectResourcesDialog();
+        final var args = new Bundle();
         args.putString(KEY_PROJECT_NAME, projectName);
         args.putSerializable(KEY_RESOURCES, new ArrayList<>(resources));
         fragment.setArguments(args);

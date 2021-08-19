@@ -1,14 +1,6 @@
 <resources>
     <string name="navigation_drawer_open">Abrir cajón de navegación</string>
     <string name="navigation_drawer_close">Cerrar cajón de navegación</string>
-
-    <string name="drawer_header_background">Imagen de fondo de la cabecera del cajón</string>
-    <string name="drawer_current_account">Cuenta actual</string>
-    <string name="drawer_middle_account"> Cuenta media</string>
-    <string name="drawer_end_account">Última cuenta</string>
-    <string name="drawer_manage_accounts">Gestionar cuentas</string>
-
-    <!-- Simple values -->
     <string name="simple_boards">Tableros</string>
     <string name="simple_add">Añadir</string>
     <string name="simple_save">Guardar</string>
@@ -39,13 +31,13 @@
     <string name="simple_copied">Copiado</string>
     <string name="simple_archive">Archivar</string>
     <string name="simple_unassigned">No asignado</string>
+    <string name="hint_error_appeared">Ha ocurrido un error</string>
 
     <string name="edit_board">Editar tablero</string>
     <string name="archive_board">Archivar tablero</string>
     <string name="delete_board">Eliminar tablero</string>
     <string name="delete_something">Borrar %1$s</string>
 
-    <!-- About -->
     <string name="about">Acerca de</string>
     <string name="about_version_title">Version</string>
     <string name="about_version">Actualmente estás usando %1$s</string>
@@ -71,9 +63,6 @@
     <string name="about_credits_tab_title">Créditos</string>
     <string name="about_contribution_tab_title">Contribuir</string>
     <string name="about_license_tab_title">Licencia</string>
-
-    <string name="copied_to_clipboard">Copiado al portapapeles</string>
-
     <string name="seconds_ago">hace unos segundos</string>
     <string name="edit">Editar</string>
     <string name="label_labels">Seleccionar etiquetas</string>
@@ -84,7 +73,7 @@
     <string name="card_not_found_message">No se ha podido encontrar la tarjeta. Quizás se ha eliminado recientemente.</string>
 
     <string name="add_account">Añadir cuenta</string>
-    <string name="choose_account">Elige una cuenta</string>
+    <string name="choose_account">Elija una cuenta</string>
     <string name="add_card">Añadir nueva tarjeta</string>
     <string name="activity">Actividad</string>
     <string name="add_list">Agregar lista</string>
@@ -114,6 +103,7 @@
     <string name="no_lists_yet">Aún no hay listas</string>
     <string name="do_you_want_to_save_your_changes">¿Desea guardar los cambios?</string>
     <string name="do_you_want_to_archive_all_cards_of_the_list">¿Desea archivar todas las tarjetas de %1$s?</string>
+    <string name="do_you_want_to_archive_all_cards_of_the_filtered_list">¿Desea archivar todas las tarjetas filtradas de %1$s?</string>
     <plurals name="do_you_want_to_delete_the_current_list">
         <item quantity="one">Esto eliminará permanentemente %1$d tarjeta de esta lista.</item>
         <item quantity="other">Esto eliminará permanentemente todas las %1$d tarjetas de esta lista.</item>
@@ -124,17 +114,27 @@
     </plurals>
     <string name="add_a_new_list_using_the_button">Añadir una nueva lista usando el botón +</string>
     <string name="add_a_new_card_using_the_button">Añadir una nueva tarjeta usando el botón +</string>
-    <string name="update_deck">Actualizar el Deck</string>
-    <string name="your_deck_version_is_too_old">Su versión del Deck es muy antigua </string>
-    <string name="deck_outdated_please_update">Tu versión de Deck es demasiado antigua (%1$s). Por favor, actualiza para usar este cliente android.</string>
+    <string name="update_deck">Actualizar la aplicación web Deck</string>
+    <string name="deck_outdated_please_update">La versión de tu aplicación web Deck es demasiado antigua (%1$s). Por favor, actualiza para usar esta aplicación Android como cliente.</string>
     <string name="delete_board_message">Esto borrará permanente el tablero, incluyendo todas las listas y tarjetas.</string>
-    <string name="settings_theme_title">Tema oscuro</string>
+    <string name="settings_theme_title">Tema</string>
     <string name="settings_branding_title">Branding</string>
     <string name="settings_compact_title">Modo compacto</string>
+    <string name="settings_cover_images_title">Imagen de la cubierta</string>
+    <string name="settings_debugging">Logs de depuración</string>
+    <string name="settings_etags">Usar ETags</string>
+    <string name="settings_etags_summary">Aumenta la velocidad de sincronización</string>
     <string name="settings_background_sync">Sincronización en segundo plano</string>
+    <string name="settings_compress_image_attachments">Comprime las imágenes al subir</string>
+    <string name="search_in">Buscar en %1$s</string>
+    <string name="settings_compress_image_attachments_summary">Subida más rápida, menor calidad</string>
     <string name="pref_value_wifi_and_mobile">Sincronizar sobre Wi-Fi y datos móviles</string>
     <string name="pref_value_wifi_only">Sincronizar solo sobre Wi-Fi</string>
-    <string name="pref_value_theme_light">Brillante</string>
+    <string-array name="darkmode_entries">
+        <item>Predeterminado del sistema</item>
+        <item>Claro</item>
+        <item>Oscuro</item>
+    </string-array>
     <string name="unassigned_user">No asignado %1$s</string>
     <string name="no_activities">No hay actividades en esta tarjeta. Necesita recolectar a Internet para cargar y mostrar las actividades.</string>
     <string name="share_board">Compartir tablero</string>
@@ -145,20 +145,17 @@
     <string name="no_content">Aún no hay contenido</string>
     <string name="last_background_sync">Última sincronización en segundo plano:</string>
     <string name="simple_off">Off</string>
-    <string name="minutes_15">15 Minutos</string>
-    <string name="hour_1">1 Hora</string>
-    <string name="hours_6">6 Horas</string>
+    <string name="minutes_15">15 minutos</string>
+    <string name="hour_1">1 hora</string>
+    <string name="hours_6">6 horas</string>
     <string name="action_card_move">Mover tarjeta</string>
     <string name="action_card_move_title">Mover %1$s</string>
-    <string name="please_add_an_account_first">Por favor, añade primero una cuenta</string>
-    <string name="title_is_mandatory">El título es obligatorio</string>
+    <string name="title_is_mandatory">Se requiere un título</string>
     <string name="provide_at_least_a_title_or_description">Indique al menos un título o una descripción</string>
     <string name="welcome_text">Bienvenido a %1$s</string>
-    <string name="save_card_before_attachment">La tarjeta debe guardarse antes de añadir archivos adjuntos.</string>
     <string name="maintenance_mode_explanation">El servidor %1$s está actualmente en modo de mantenimiento. Por favor, contacta con tu administrador o vuelve a intentarlo más tarde.</string>
     <string name="share_add_to_card">Añadir a la tarjeta</string>
     <string name="share_success">Añadido satisfactoriamente %1$s a %2$s</string>
-    <string name="could_not_copy_to_clipboard">No se puede copiar al portapapeles</string>
     <string name="add_comment">Agregar comentario</string>
     <string name="card_edit_comments">Comentarios</string>
     <string name="no_comments_yet">Todavía no hay comentarios.</string>
@@ -170,22 +167,21 @@
     <string name="open_in_browser">Abrir en navegador</string>
     <string name="updating_card">Actualizando tarjeta</string>
 
-    <!-- Move lists -->
     <string name="move_list_right">Mover lista a la derecha</string>
     <string name="move_list_left">Mover lista a la izquierda</string>
 
-    <!-- Filter -->
     <string name="filter_no_filter">Todo</string>
     <string name="filter_overdue">Demorado</string>
     <string name="filter_today">Hoy</string>
+    <string name="filter_tomorrow">Mañana</string>
     <string name="filter_week">Siguientes 7 días</string>
     <string name="filter_month">Siguientes 30 días</string>
     <string name="filter_no_due">Sin fecha de vencimiento</string>
+    <string name="filter_later">Después</string>
     <string name="filter_by_tag">Filtrar por etiqueta</string>
     <string name="filter_by_assigned_user">Filtrar por usuario asignado</string>
     <string name="filter_by_duedate">Filtrar por fecha de finalización</string>
 
-    <!-- Archived cards -->
     <string name="archived_cards">Tarjetas archivadas</string>
     <string name="action_card_dearchive">Deshacer archivado de tarjeta</string>
     <string name="action_archived_cards">Explorar las tarjetas archivadas</string>
@@ -200,28 +196,26 @@
     <string name="filter_user_title">Usuarios</string>
     <string name="filter_duedate_title">Fecha de fin</string>
 
-    <!-- Archived boards -->
     <string name="action_board_dearchive">Deshacer archivado del tablero</string>
     <string name="archived_boards">Tableros archivados</string>
 
-    <!-- Errors -->
     <string name="error">Ha aparecido un error</string>
     <string name="synchronization_failed">Fallo en la sincronización</string>
     <string name="operation_not_yet_supported">No está soportado todavía</string>
     <string name="error_revoking_ac">Error al revocar el acceso a %1$s</string>
     <string name="error_create_label">Error al crear la etiqueta %1$s</string>
-    <string name="maintenance_mode">Servidor en modo de mantenimiento</string>
-    <string name="server_misconfigured">Servidor mal configurado</string>
+    <string name="maintenance_mode">El servidor está en modo mantenimiento</string>
     <string name="server_error">Error en el servidor</string>
-    <string name="shared_error">Compartir contenido desde apps de terceras partes no está totalmente soportado. Por favor, intente descargarlo antes y luego compartirlo a través de su administrador de archivos o su galería nativa.</string>
     <string name="error_edit_activity_killed_by_android">Android finalizó el modo de edición debido a que se necesitaban más recursos del sistema para otras aplicaciones.</string>
 
     <string name="error_dialog_title">Oh no - ¿Ahora qué? 🙁</string>
     <string name="error_dialog_tip_token_mismatch_retry">Por favor, intenta forzar el cierre de la aplicación y vuelve a abrirla. Es posible que haya habido un problema de conexión con la aplicación Nextcloud.</string>
-    <string name="error_dialog_tip_clear_storage_might_help">Si el problema persiste, intenta limpiar borrar el almacenamiento de ambas apps, Nextcloud y Nextcloud Deck para solucionar este problema.</string>
+    <string name="error_dialog_tip_clear_storage_might_help">Si el problema persiste, intenta borrar el almacenamiento de ambas apps: Nextcloud y Nextcloud Deck para solucionar este problema.</string>
     <string name="error_dialog_tip_database_upgrade_failed">Falló la actualización de la base de datos. Por favor, informe del problema y limpie el almacenamiento para usar la aplicación de manera normal.</string>
     <string name="error_dialog_tip_clear_storage">Puedes limpiar el almacenamiento abriendo la información de la app y seleccionando Almacenamiento → Eliminar datos.</string>
     <string name="error_dialog_tip_files_outdated">Su aplicación Nextcloud parece que está desactualizada. Por favor visite la Play Store o F-Droid para conseguir la versión más reciente.</string>
+    <string name="error_dialog_tip_offline">Parece que has intentado lanzar una sincronización sin tener conexión a internet.</string>
+    <string name="error_dialog_tip_sync_only_on_wifi">Si has habilitado \"Sincronizar solo con Wi-Fi\", solo podrás sincronizar cuando estés conectado a un Wi-Fi.</string>
     <string name="error_dialog_tip_files_force_stop">Algo parece ir mal en tu app de Nextcloud. Por favor, intenta forzar el cierre de ambas, Nextcloud y Nextcloud Deck.</string>
     <string name="error_dialog_tip_files_delete_storage">Si pararlas no ayuda, puede intentar borrar el almacenamiento de ambas aplicaciones.</string>
     <string name="error_dialog_timeout_instance">No hubo una respuesta de su servidor en un tiempo determinado. Por favor asegúrese de que su instancia está funcionando sin problemas.</string>
@@ -233,25 +227,29 @@
     <string name="error_dialog_we_need_info">Necesitamos la siguiente información técnica para ayudarle:</string>
     <string name="error_dialog_redirect">Tu servidor respondió con el código de estado HTTP 302, lo que implica que no está instalada la aplicación Deck en su servidor o que algo está mal configurado. Esto puede estar causado por anulaciones personalizadas en un  archivo .htaccess o por aplicaciones de Nexcloud como OID Client. </string>
     <string name="error_dialog_version_not_parsable">No se pudo determinar la versión de la aplicación Deck en el lado del servidor. Por favor, compruebe que está instalada y activada. </string>
-    <string name="error_dialog_account_might_not_be_authorized">La cuenta de tu app Nextcloud puede ya no estar autorizada.</string>
+    <string name="error_dialog_account_might_not_be_authorized">La cuenta de tu app Nextcloud podría no estar autorizada.</string>
     <string name="error_dialog_user_not_found_in_database">El usuario actual no coincide con el usuario que tenemos en nuestra base de datos. Si estás usando LDAP en tu instancia de Nextcloud, tu app de Nextcloud puede haber almacenado una ID de usuario antigua.</string>
     <string name="error_dialog_capabilities_not_parsable">No se ha podido comprobar las capacidades de su servidor. Por favor compruebe que su servidor está funcionando bien y que otras aplicaciones de cliente son capaces de acceder a Nextcloud.</string>
     <string name="error_dialog_attachment_upload_failed">No se ha podido subir un adjunto. Por favor, intenta compartirlo de otra forma y comunícanos este fallo.</string>
+    <string name="error_dialog_certificate">Algo parece ir mal con el certificado del servidor. Por favor, compruebe todas las cuentas en la app Nextcloud para más información.</string>
     <string name="error_dialog_tip_disable_battery_optimizations">Por favor, desactiva todas las optimizaciones de la batería para Nextcloud y la aplicación Deck.</string>
     <string name="error_action_open_deck_info">Abrir info de la app</string>
+    <string name="error_action_open_nextcloud_app">Abrir app de Nextcloud</string>
     <string name="error_action_open_network">Configuración de red</string>
     <string name="error_action_server_logs">Registros del servidor</string>
     <string name="error_action_install">Instalar</string>
     <string name="error_action_report_issue">Informe</string>
-    <string name="info_box_maintenance_mode">Servidor en modo de mantenimiento</string>
+    <string name="info_box_maintenance_mode">El servidor está en modo mantenimiento</string>
     <string name="info_box_version_not_supported">La versión %1$s del servidor no está soportada. Por favor, actualiza a %2$s</string>
     <string name="share_link">Compartir enlace</string>
+    <string name="share_content">Compartir contenido</string>
+    <string name="share_content_duedate">Fecha de caducidad: %1$s</string>
+    <string name="share_content_labels">Tags: %1$s</string>
     <string name="archive_cards">Tarjetas archivadas</string>
 
     <string name="manage_accounts">Gestionar cuentas</string>
     <string name="manage_list">Administrar su lista</string>
     <string name="simple_reply">Responder</string>
-    <string name="error_while_uploading_attachment">Error al subir adjunto: %1$s</string>
     <string name="append_text_to_description">Añadir a la descripción</string>
     <string name="add_text_as_comment">Añadir como comentario</string>
     <string name="progress_count">%1$d de %2$d</string>
@@ -269,8 +267,9 @@
     <string name="card_does_not_yet_exist">La tarjeta todavía no existe en Deck</string>
 
     <string name="widget_stack_title">Lista</string>
+    <string name="widget_filter_title">Filtro</string>
     <string name="widget_stack_header_icon">Icono de la cabecera del widget</string>
-    <string name="widget_stack_placeholder_icon">Espacio para icono del widget</string>
+    <string name="widget_placeholder_icon">Espacio para el icono del widget</string>
     <string name="select_stack">Seleccione lista</string>
     <string name="project_type_deck_board">Tablero Deck</string>
     <string name="project_type_deck_card">Tarjeta Deck</string>
@@ -285,4 +284,39 @@
     <string name="project_type_room">Sala de conversación</string>
     <string name="simple_move">Mover</string>
     <string name="cannot_upload_files_without_permission">No se puede subir archivos sin permiso</string>
+    <string name="clone_cards">Clonar tarjetas</string>
+    <string name="simple_clone">Clonar</string>
+    <string name="user_avatar">Usar avatar</string>
+    <string name="simple_unassign">Sin asignar</string>
+    <string name="simple_contact">Contacto</string>
+    <string name="simple_file">Archivo</string>
+    <string name="simple_camera">Camera</string>
+    <string name="take_photo">Tomar una foto</string>
+    <string name="take_photo_switch_camera">Cambiar cámara</string>
+    <string name="take_photo_toggle_torch">Activar/desactivar linterna</string>
+    <string name="show_all_contacts">Mostrar todos los contactos</string>
+    <string name="show_all_files">Mostrar todos los archivos</string>
+    <string name="recent">Reciente</string>
+    <string name="upload_a_new_attachment">Subir un nuevo adjunto</string>
+    <string name="contacts">Contactos</string>
+    <string name="downloads">Descargas</string>
+    <string name="files">Archivos</string>
+    <string name="gallery">Galería</string>
+    <string name="simple_attach">adjuntar</string>
+    <string name="add_stack_widget">Agregar lista de widget</string>
+    <string name="add_filter_widget">Añadir filtro de widget</string>
+    <string name="simple_order">Ordenar</string>
+    <string name="edit_description">Editar descripción</string>
+    <string name="widget_upcoming_title">Próximas tarjetas</string>
+    <!-- Category header for a section in the settings which contain features for advanced users -->
+    <string name="simple_expert_settings">Ajustes Experto</string>
+    <string name="copy_logs">Copiar registros en el portapapeles</string>
+    <string name="app_logo">App logo</string>
+    <string name="log_file">Archivo de registro</string>
+    <string name="copying_logs_to_file">Copiando registros al archivo…</string>
+    <string name="account_imported">Cuenta importada</string>
+    <string name="simple_search">Buscar</string>
+    <!-- Label for a title input field that is required to be filled out -->
+    <string name="title_mandatory">Título (requerido)</string>
+    <string name="saving_new_card">Guardando una nueva tarjeta...</string>
 </resources>

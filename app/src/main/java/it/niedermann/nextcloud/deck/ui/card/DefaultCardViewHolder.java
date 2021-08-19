@@ -1,6 +1,5 @@
 package it.niedermann.nextcloud.deck.ui.card;
 
-import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -12,37 +11,34 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.MenuRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.card.MaterialCardView;
-
-import org.jetbrains.annotations.Contract;
-
-import java.util.List;
 
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.ItemCardDefaultBinding;
 import it.niedermann.nextcloud.deck.model.Account;
-import it.niedermann.nextcloud.deck.model.Card.TaskStatus;
-import it.niedermann.nextcloud.deck.model.Label;
-import it.niedermann.nextcloud.deck.model.User;
 import it.niedermann.nextcloud.deck.model.full.FullCard;
 
 public class DefaultCardViewHolder extends AbstractCardViewHolder {
-    private ItemCardDefaultBinding binding;
+    private final ItemCardDefaultBinding binding;
+    private final int maxCoverImagesCount;
 
     @SuppressWarnings("WeakerAccess")
-    public DefaultCardViewHolder(@NonNull ItemCardDefaultBinding binding) {
+    public DefaultCardViewHolder(@NonNull ItemCardDefaultBinding binding, int maxCoverImagesCount) {
         super(binding.getRoot());
         this.binding = binding;
+        this.maxCoverImagesCount = maxCoverImagesCount;
     }
 
     /**
      * Removes all {@link OnClickListener} and {@link OnLongClickListener}
      */
+    @Override
     public void bind(@NonNull FullCard fullCard, @NonNull Account account, @Nullable Long boardRemoteId, boolean hasEditPermission, @MenuRes int optionsMenu, @NonNull CardOptionsItemSelectedListener optionsItemsSelectedListener, @NonNull String counterMaxValue, @ColorInt int mainColor) {
         super.bind(fullCard, account, boardRemoteId, hasEditPermission, optionsMenu, optionsItemsSelectedListener, counterMaxValue, mainColor);
 
-        final Context context = itemView.getContext();
+        final var context = itemView.getContext();
 
         if (fullCard.getAssignedUsers() != null && fullCard.getAssignedUsers().size() > 0) {
             binding.overlappingAvatars.setAvatars(account, fullCard.getAssignedUsers());
@@ -50,6 +46,8 @@ public class DefaultCardViewHolder extends AbstractCardViewHolder {
         } else {
             binding.overlappingAvatars.setVisibility(View.GONE);
         }
+
+        setupCoverImages(account, binding.coverImages, fullCard, maxCoverImagesCount);
 
         final int attachmentsCount = fullCard.getAttachments().size();
         if (attachmentsCount == 0) {
@@ -68,7 +66,7 @@ public class DefaultCardViewHolder extends AbstractCardViewHolder {
             binding.cardCountComments.setVisibility(View.VISIBLE);
         }
 
-        final List<Label> labels = fullCard.getLabels();
+        final var labels = fullCard.getLabels();
         if (labels != null && labels.size() > 0) {
             binding.labels.updateLabels(labels);
             binding.labels.setVisibility(View.VISIBLE);
@@ -77,15 +75,15 @@ public class DefaultCardViewHolder extends AbstractCardViewHolder {
             binding.labels.setVisibility(View.GONE);
         }
 
-        final TaskStatus taskStatus = fullCard.getCard().getTaskStatus();
+        final var taskStatus = fullCard.getCard().getTaskStatus();
         if (taskStatus.taskCount > 0) {
             binding.cardCountTasks.setText(context.getResources().getString(R.string.task_count, String.valueOf(taskStatus.doneCount), String.valueOf(taskStatus.taskCount)));
-            binding.cardCountTasks.setCompoundDrawablesWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.ic_check_grey600_24dp), null, null, null);
+            binding.cardCountTasks.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.ic_check_grey600_24dp), null, null, null);
             binding.cardCountTasks.setVisibility(View.VISIBLE);
         } else {
             final String description = fullCard.getCard().getDescription();
             if (!TextUtils.isEmpty(description)) {
-                binding.cardCountTasks.setCompoundDrawablesWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.ic_baseline_subject_24), null, null, null);
+                binding.cardCountTasks.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.ic_baseline_subject_24), null, null, null);
                 binding.cardCountTasks.setText(null);
                 binding.cardCountTasks.setVisibility(View.VISIBLE);
             } else {
@@ -140,17 +138,5 @@ public class DefaultCardViewHolder extends AbstractCardViewHolder {
         } else if (count == 1) {
             textView.setText("");
         }
-    }
-
-    @Contract("null, _ -> false")
-    private static boolean containsUser(List<User> userList, String username) {
-        if (userList != null) {
-            for (User user : userList) {
-                if (user.getPrimaryKey().equals(username)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }

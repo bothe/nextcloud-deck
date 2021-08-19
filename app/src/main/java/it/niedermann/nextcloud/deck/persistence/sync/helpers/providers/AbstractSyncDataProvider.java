@@ -1,11 +1,13 @@
 package it.niedermann.nextcloud.deck.persistence.sync.helpers.providers;
 
+import androidx.annotation.Nullable;
+
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import it.niedermann.nextcloud.deck.DeckLog;
-import it.niedermann.nextcloud.deck.api.IResponseCallback;
+import it.niedermann.nextcloud.deck.api.ResponseCallback;
 import it.niedermann.nextcloud.deck.model.interfaces.IRemoteEntity;
 import it.niedermann.nextcloud.deck.persistence.sync.adapters.ServerAdapter;
 import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.DataBaseAdapter;
@@ -13,11 +15,12 @@ import it.niedermann.nextcloud.deck.persistence.sync.helpers.SyncHelper;
 
 public abstract class AbstractSyncDataProvider<T extends IRemoteEntity> {
 
+    @Nullable
     protected AbstractSyncDataProvider<?> parent;
-    private List<AbstractSyncDataProvider<?>> children = new ArrayList<>();
+    private final List<AbstractSyncDataProvider<?>> children = new ArrayList<>();
     private boolean stillGoingDeeper = false;
 
-    public AbstractSyncDataProvider(AbstractSyncDataProvider<?> parent) {
+    public AbstractSyncDataProvider(@Nullable AbstractSyncDataProvider<?> parent) {
         this.parent = parent;
     }
 
@@ -27,17 +30,18 @@ public abstract class AbstractSyncDataProvider<T extends IRemoteEntity> {
         }
     }
 
-    public void handleDeletes(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, List<T> entitiesFromServer){
+    public void handleDeletes(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, List<T> entitiesFromServer) {
         // do nothing as a default.
     }
 
     /**
      * Searches each entry of <code>listB</code> in list <code>listA</code> and returns the missing ones
+     *
      * @param listA List
      * @param listB List
      * @return all entries of <code>listB</code> missing in <code>listA</code>
      */
-    public static <T extends IRemoteEntity> List<T> findDelta(List<T> listA, List<T> listB){
+    public static <T extends IRemoteEntity> List<T> findDelta(List<T> listA, List<T> listB) {
         List<T> delta = new ArrayList<>();
         for (T b : listB) {
             if (b == null) {
@@ -56,7 +60,7 @@ public abstract class AbstractSyncDataProvider<T extends IRemoteEntity> {
                     break;
                 }
             }
-            if (!found){
+            if (!found) {
                 delta.add(b);
             }
         }
@@ -67,10 +71,12 @@ public abstract class AbstractSyncDataProvider<T extends IRemoteEntity> {
         children.add(child);
     }
 
-    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<List<T>> responder, Date lastSync) {
+    @SuppressWarnings("UnnecessaryReturnStatement")
+    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<List<T>> responder, Instant lastSync) {
         return;
     }
-    public void getAllFromServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<List<T>> responder, Date lastSync) {
+
+    public void getAllFromServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<List<T>> responder, Instant lastSync) {
         // Overridden, because we also need the DB-Adapter at some points here (see ACL data provider)
         getAllFromServer(serverAdapter, accountId, responder, lastSync);
     }
@@ -87,21 +93,21 @@ public abstract class AbstractSyncDataProvider<T extends IRemoteEntity> {
 
     public abstract void deleteInDB(DataBaseAdapter dataBaseAdapter, long accountId, T t);
 
-    public void deletePhysicallyInDB(DataBaseAdapter dataBaseAdapter, long accountId, T t){
+    public void deletePhysicallyInDB(DataBaseAdapter dataBaseAdapter, long accountId, T t) {
         deleteInDB(dataBaseAdapter, accountId, t);
     }
 
-    public void goDeeper(SyncHelper syncHelper, T existingEntity, T entityFromServer, IResponseCallback<Boolean> callback) {
+    public void goDeeper(SyncHelper syncHelper, T existingEntity, T entityFromServer, ResponseCallback<Boolean> callback) {
         childDone(this, callback, true);
     }
 
-    public abstract void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<T> responder, T entity);
+    public abstract void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<T> responder, T entity);
 
-    public abstract void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<T> callback, T entity);
+    public abstract void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<T> callback, T entity);
 
-    public abstract void deleteOnServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<Void> callback, T entity, DataBaseAdapter dataBaseAdapter);
+    public abstract void deleteOnServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<Void> callback, T entity, DataBaseAdapter dataBaseAdapter);
 
-    public void childDone(AbstractSyncDataProvider<?> child, IResponseCallback<Boolean> responseCallback, boolean syncChangedSomething) {
+    public void childDone(AbstractSyncDataProvider<?> child, ResponseCallback<Boolean> responseCallback, boolean syncChangedSomething) {
         children.remove(child);
         if (!stillGoingDeeper && children.isEmpty()) {
             if (parent != null) {
@@ -112,7 +118,7 @@ public abstract class AbstractSyncDataProvider<T extends IRemoteEntity> {
         }
     }
 
-    public void doneGoingDeeper(IResponseCallback<Boolean> responseCallback, boolean syncChangedSomething) {
+    public void doneGoingDeeper(ResponseCallback<Boolean> responseCallback, boolean syncChangedSomething) {
         stillGoingDeeper = false;
         childDone(this, responseCallback, syncChangedSomething);
     }
@@ -121,18 +127,16 @@ public abstract class AbstractSyncDataProvider<T extends IRemoteEntity> {
         stillGoingDeeper = true;
     }
 
-    public abstract List<T> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Date lastSync);
+    public abstract List<T> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Instant lastSync);
 
-    public void goDeeperForUpSync(SyncHelper syncHelper, ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, IResponseCallback<Boolean> callback) {
+    public void goDeeperForUpSync(SyncHelper syncHelper, ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, ResponseCallback<Boolean> callback) {
         //do nothing
     }
 
-    public void onError(Throwable error, IResponseCallback<Boolean> responseCallback) {
+    public void onError(ResponseCallback<Boolean> responseCallback) {
         if (parent != null) {
             parent.childDone(this, responseCallback, false);
         }
-        //TODO: what to do? what side effect would the following have:
-//        responseCallback.onError(error);
     }
 
     public T applyUpdatesFromRemote(T localEntity, T remoteEntity, Long accountId) {

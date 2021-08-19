@@ -1,10 +1,12 @@
 package it.niedermann.nextcloud.deck.persistence.sync.helpers.providers;
 
-import java.util.ArrayList;
-import java.util.Date;
+import androidx.annotation.NonNull;
+
+import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 
-import it.niedermann.nextcloud.deck.api.IResponseCallback;
+import it.niedermann.nextcloud.deck.api.ResponseCallback;
 import it.niedermann.nextcloud.deck.model.Card;
 import it.niedermann.nextcloud.deck.model.ocs.Activity;
 import it.niedermann.nextcloud.deck.persistence.sync.adapters.ServerAdapter;
@@ -12,15 +14,16 @@ import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.DataBaseAdapter
 
 public class ActivityDataProvider extends AbstractSyncDataProvider<Activity> {
 
-    protected Card card;
+    @NonNull
+    private final Card card;
 
-    public ActivityDataProvider(AbstractSyncDataProvider<?> parent, Card card) {
+    public ActivityDataProvider(AbstractSyncDataProvider<?> parent, @NonNull Card card) {
         super(parent);
         this.card = card;
     }
 
     @Override
-    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<List<Activity>> responder, Date lastSync) {
+    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<List<Activity>> responder, Instant lastSync) {
         serverAdapter.getActivitiesForCard(card.getId(), responder);
     }
 
@@ -50,22 +53,22 @@ public class ActivityDataProvider extends AbstractSyncDataProvider<Activity> {
     }
 
     @Override
-    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<Activity> responder, Activity entity) {
+    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<Activity> responder, Activity entity) {
         // nope.
     }
 
     @Override
-    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<Activity> callback, Activity entity) {
+    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<Activity> callback, Activity entity) {
         // nope.
     }
 
     @Override
-    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<Void> callback, Activity entity, DataBaseAdapter dataBaseAdapter) {
+    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<Void> callback, Activity entity, DataBaseAdapter dataBaseAdapter) {
         // nope.
     }
 
     @Override
-    public List<Activity> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Date lastSync) {
-        return new ArrayList<>();
+    public List<Activity> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Instant lastSync) {
+        return Collections.emptyList();
     }
 }

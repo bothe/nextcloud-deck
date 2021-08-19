@@ -5,7 +5,7 @@ import androidx.room.ForeignKey;
 import androidx.room.Ignore;
 import androidx.room.Index;
 
-import java.util.Date;
+import java.time.Instant;
 
 import it.niedermann.nextcloud.deck.model.interfaces.AbstractRemoteEntity;
 
@@ -17,6 +17,11 @@ import it.niedermann.nextcloud.deck.model.interfaces.AbstractRemoteEntity;
                         entity = Board.class,
                         parentColumns = "localId",
                         childColumns = "boardId", onDelete = ForeignKey.CASCADE
+                ),
+                @ForeignKey(
+                        entity = Account.class,
+                        parentColumns = "id",
+                        childColumns = "accountId", onDelete = ForeignKey.CASCADE
                 )
         }
 )
@@ -36,7 +41,7 @@ public class Stack extends AbstractRemoteEntity {
 
     private long boardId;
 
-    private Date deletedAt;
+    private Instant deletedAt;
 
     private int order;
 //
@@ -61,11 +66,11 @@ public class Stack extends AbstractRemoteEntity {
         this.boardId = boardId;
     }
 
-    public Date getDeletedAt() {
+    public Instant getDeletedAt() {
         return deletedAt;
     }
 
-    public void setDeletedAt(Date deletedAt) {
+    public void setDeletedAt(Instant deletedAt) {
         this.deletedAt = deletedAt;
     }
 

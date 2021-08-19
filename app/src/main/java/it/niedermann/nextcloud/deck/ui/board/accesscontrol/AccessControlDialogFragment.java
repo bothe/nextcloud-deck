@@ -1,5 +1,8 @@
 package it.niedermann.nextcloud.deck.ui.board.accesscontrol;
 
+import static it.niedermann.nextcloud.deck.ui.board.accesscontrol.AccessControlAdapter.HEADER_ITEM_LOCAL_ID;
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditTextInputLayout;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -7,6 +10,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
@@ -18,24 +22,18 @@ import java.util.List;
 
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
+import it.niedermann.nextcloud.deck.api.IResponseCallback;
 import it.niedermann.nextcloud.deck.databinding.DialogBoardShareBinding;
 import it.niedermann.nextcloud.deck.model.AccessControl;
 import it.niedermann.nextcloud.deck.model.User;
 import it.niedermann.nextcloud.deck.model.full.FullBoard;
 import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
-import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.WrappedLiveData;
 import it.niedermann.nextcloud.deck.ui.MainViewModel;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedSnackbar;
 import it.niedermann.nextcloud.deck.ui.card.UserAutoCompleteAdapter;
 import it.niedermann.nextcloud.deck.ui.exception.ExceptionDialogFragment;
 
-import static it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.LiveDataHelper.observeOnce;
-import static it.niedermann.nextcloud.deck.ui.board.accesscontrol.AccessControlAdapter.HEADER_ITEM_LOCAL_ID;
-import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditText;
-
-public class AccessControlDialogFragment extends BrandedDialogFragment implements AccessControlChangedListener, OnItemClickListener {
+public class AccessControlDialogFragment extends DialogFragment implements AccessControlChangedListener, OnItemClickListener {
 
     private MainViewModel viewModel;
     private DialogBoardShareBinding binding;
@@ -43,7 +41,6 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
     private static final String KEY_BOARD_ID = "board_id";
 
     private long boardId;
-    private SyncManager syncManager;
     private UserAutoCompleteAdapter userAutoCompleteAdapter;
     private AccessControlAdapter adapter;
 
@@ -69,16 +66,15 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
         super.onCreate(savedInstanceState);
 
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        final AlertDialog.Builder dialogBuilder = new BrandedAlertDialogBuilder(requireContext());
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
 
         binding = DialogBoardShareBinding.inflate(requireActivity().getLayoutInflater());
         adapter = new AccessControlAdapter(viewModel.getCurrentAccount(), this, requireContext());
         binding.peopleList.setAdapter(adapter);
 
-        syncManager = new SyncManager(requireActivity());
-        syncManager.getFullBoardById(viewModel.getCurrentAccount().getId(), boardId).observe(this, (FullBoard fullBoard) -> {
+        viewModel.getFullBoardById(viewModel.getCurrentAccount().getId(), boardId).observe(this, (FullBoard fullBoard) -> {
             if (fullBoard != null) {
-                syncManager.getAccessControlByLocalBoardId(viewModel.getCurrentAccount().getId(), boardId).observe(this, (List<AccessControl> accessControlList) -> {
+                viewModel.getAccessControlByLocalBoardId(viewModel.getCurrentAccount().getId(), boardId).observe(this, (List<AccessControl> accessControlList) -> {
                     final AccessControl ownerControl = new AccessControl();
                     ownerControl.setLocalId(HEADER_ITEM_LOCAL_ID);
                     ownerControl.setUser(fullBoard.getOwner());
@@ -88,6 +84,7 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
                     binding.people.setAdapter(userAutoCompleteAdapter);
                     binding.people.setOnItemClickListener(this);
                 });
+                applyBrand(fullBoard.getBoard().getColor());
             } else {
                 // Happens when someone revokes his own access → board gets deleted locally → LiveData fires, but no board
                 // see https://github.com/stefan-niedermann/nextcloud-deck/issues/410
@@ -103,26 +100,39 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
 
     @Override
     public void updateAccessControl(AccessControl accessControl) {
-        WrappedLiveData<AccessControl> updateLiveData = syncManager.updateAccessControl(accessControl);
-        observeOnce(updateLiveData, requireActivity(), (next) -> {
-            if (updateLiveData.hasError()) {
-                ExceptionDialogFragment.newInstance(updateLiveData.getError(), viewModel.getCurrentAccount()).show(getChildFragmentManager(), ExceptionDialogFragment.class.getSimpleName());
+        viewModel.updateAccessControl(accessControl, new IResponseCallback<>() {
+            @Override
+            public void onResponse(AccessControl response) {
+                DeckLog.info("Successfully updated", AccessControl.class.getSimpleName(), "for user", accessControl.getUser().getDisplayname());
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                IResponseCallback.super.onError(throwable);
+                requireActivity().runOnUiThread(() -> ExceptionDialogFragment.newInstance(throwable, viewModel.getCurrentAccount()).show(getChildFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
             }
         });
     }
 
     @Override
     public void deleteAccessControl(AccessControl ac) {
-        final WrappedLiveData<Void> wrappedDeleteLiveData = syncManager.deleteAccessControl(ac);
-        adapter.remove(ac);
-        observeOnce(wrappedDeleteLiveData, this, (ignored) -> {
-            if (wrappedDeleteLiveData.hasError() && !SyncManager.ignoreExceptionOnVoidError(wrappedDeleteLiveData.getError())) {
-                DeckLog.logError(wrappedDeleteLiveData.getError());
-                BrandedSnackbar.make(requireView(), getString(R.string.error_revoking_ac, ac.getUser().getDisplayname()), Snackbar.LENGTH_LONG)
-                        .setAction(R.string.simple_more, v -> ExceptionDialogFragment.newInstance(wrappedDeleteLiveData.getError(), viewModel.getCurrentAccount()).show(getChildFragmentManager(), ExceptionDialogFragment.class.getSimpleName()))
-                        .show();
+        viewModel.deleteAccessControl(ac, new IResponseCallback<>() {
+            @Override
+            public void onResponse(Void response) {
+                DeckLog.info("Successfully deleted access control for user", ac.getUser().getDisplayname());
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                if (!SyncManager.ignoreExceptionOnVoidError(throwable)) {
+                    IResponseCallback.super.onError(throwable);
+                    requireActivity().runOnUiThread(() -> BrandedSnackbar.make(requireView(), getString(R.string.error_revoking_ac, ac.getUser().getDisplayname()), Snackbar.LENGTH_LONG)
+                            .setAction(R.string.simple_more, v -> ExceptionDialogFragment.newInstance(throwable, viewModel.getCurrentAccount()).show(getChildFragmentManager(), ExceptionDialogFragment.class.getSimpleName()))
+                            .show());
+                }
             }
         });
+        adapter.remove(ac);
     }
 
     @Override
@@ -134,19 +144,24 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
         ac.setType(0L); // https://github.com/nextcloud/deck/blob/master/docs/API.md#post-boardsboardidacl---add-new-acl-rule
         ac.setUserId(user.getLocalId());
         ac.setUser(user);
-        final WrappedLiveData<AccessControl> createLiveData = syncManager.createAccessControl(viewModel.getCurrentAccount().getId(), ac);
-        observeOnce(createLiveData, this, (next) -> {
-            if (createLiveData.hasError()) {
-                ExceptionDialogFragment.newInstance(createLiveData.getError(), viewModel.getCurrentAccount()).show(getChildFragmentManager(), ExceptionDialogFragment.class.getSimpleName());
+        viewModel.createAccessControl(viewModel.getCurrentAccount().getId(), ac, new IResponseCallback<>() {
+            @Override
+            public void onResponse(AccessControl response) {
+                DeckLog.info("Successfully created", AccessControl.class.getSimpleName(), "for user", user.getDisplayname());
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                IResponseCallback.super.onError(throwable);
+                requireActivity().runOnUiThread(() -> ExceptionDialogFragment.newInstance(throwable, viewModel.getCurrentAccount()).show(getChildFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
             }
         });
         binding.people.setText("");
         userAutoCompleteAdapter.exclude(user);
     }
 
-    @Override
-    public void applyBrand(int mainColor) {
-        applyBrandToEditText(mainColor, binding.people);
+    public void applyBrand(@ColorInt int mainColor) {
+        applyBrandToEditTextInputLayout(mainColor, binding.peopleWrapper);
         this.adapter.applyBrand(mainColor);
     }
 

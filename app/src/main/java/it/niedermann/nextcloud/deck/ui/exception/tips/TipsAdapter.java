@@ -1,13 +1,16 @@
 package it.niedermann.nextcloud.deck.ui.exception.tips;
 
+import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+import static it.niedermann.nextcloud.deck.ui.exception.ExceptionDialogFragment.INTENT_EXTRA_BUTTON_TEXT;
+
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.provider.Settings;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -16,10 +19,12 @@ import androidx.annotation.StringRes;
 import androidx.core.util.Consumer;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.nextcloud.android.sso.Constants;
 import com.nextcloud.android.sso.exceptions.NextcloudApiNotRespondingException;
 import com.nextcloud.android.sso.exceptions.NextcloudFilesAppNotSupportedException;
 import com.nextcloud.android.sso.exceptions.NextcloudHttpRequestFailedException;
 import com.nextcloud.android.sso.exceptions.TokenMismatchException;
+import com.nextcloud.android.sso.exceptions.UnknownErrorException;
 
 import org.json.JSONException;
 
@@ -31,22 +36,21 @@ import java.util.List;
 import it.niedermann.nextcloud.deck.BuildConfig;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.exceptions.DeckException;
+import it.niedermann.nextcloud.deck.exceptions.OfflineException;
 import it.niedermann.nextcloud.deck.exceptions.UploadAttachmentFailedException;
 import it.niedermann.nextcloud.deck.model.Account;
 
-import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
-import static it.niedermann.nextcloud.deck.ui.exception.ExceptionDialogFragment.INTENT_EXTRA_BUTTON_TEXT;
-
 public class TipsAdapter extends RecyclerView.Adapter<TipsViewHolder> {
 
+    private static final String[] APPS = new String[]{Constants.PACKAGE_NAME_PROD, Constants.PACKAGE_NAME_DEV};
     private static final Intent INTENT_APP_INFO = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS)
             .setData(Uri.parse("package:" + BuildConfig.APPLICATION_ID))
             .putExtra(INTENT_EXTRA_BUTTON_TEXT, R.string.error_action_open_deck_info);
 
     @NonNull
-    private Consumer<Intent> actionButtonClickedListener;
+    private final Consumer<Intent> actionButtonClickedListener;
     @NonNull
-    private List<TipsModel> tips = new LinkedList<>();
+    private final List<TipsModel> tips = new LinkedList<>();
 
     public TipsAdapter(@NonNull Consumer<Intent> actionButtonClickedListener) {
         this.actionButtonClickedListener = actionButtonClickedListener;
@@ -55,8 +59,8 @@ public class TipsAdapter extends RecyclerView.Adapter<TipsViewHolder> {
     @NonNull
     @Override
     public TipsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        final View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_tip, parent, false);
-        return new TipsViewHolder(v);
+        final var view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_tip, parent, false);
+        return new TipsViewHolder(view);
     }
 
     @Override
@@ -76,6 +80,9 @@ public class TipsAdapter extends RecyclerView.Adapter<TipsViewHolder> {
             add(R.string.error_dialog_tip_clear_storage, INTENT_APP_INFO);
         } else if (throwable instanceof NextcloudFilesAppNotSupportedException) {
             add(R.string.error_dialog_tip_files_outdated);
+        } else if (throwable instanceof OfflineException) {
+            add(R.string.error_dialog_tip_offline);
+            add(R.string.error_dialog_tip_sync_only_on_wifi);
         } else if (throwable instanceof NextcloudApiNotRespondingException) {
             if (VERSION.SDK_INT >= VERSION_CODES.M) {
                 add(R.string.error_dialog_tip_disable_battery_optimizations, new Intent().setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).putExtra(INTENT_EXTRA_BUTTON_TEXT, R.string.error_action_open_battery_settings));
@@ -113,6 +120,19 @@ public class TipsAdapter extends RecyclerView.Adapter<TipsViewHolder> {
             }
         } else if (throwable instanceof UploadAttachmentFailedException) {
             add(R.string.error_dialog_attachment_upload_failed);
+        } else if (throwable instanceof ClassNotFoundException) {
+            final Throwable cause = ((ClassNotFoundException) throwable).getCause();
+            if (cause != null) {
+                final String message = cause.getMessage();
+                if (message != null && message.toLowerCase().contains("certificate")) {
+                    final Intent filesOpenIntent = getOpenFilesIntent(context);
+                    if (filesOpenIntent == null) {
+                        add(R.string.error_dialog_certificate);
+                    } else {
+                        add(R.string.error_dialog_certificate, filesOpenIntent);
+                    }
+                }
+            }
         } else if (throwable instanceof DeckException) {
             switch (((DeckException) throwable).getHint()) {
                 case CAPABILITIES_VERSION_NOT_PARSABLE:
@@ -142,11 +162,19 @@ public class TipsAdapter extends RecyclerView.Adapter<TipsViewHolder> {
             add(R.string.error_dialog_tip_clear_storage_might_help);
             add(R.string.error_dialog_tip_clear_storage, INTENT_APP_INFO);
         } else if (throwable instanceof RuntimeException) {
-            if (throwable.getMessage() != null && throwable.getMessage().contains("database")) {
+            if (throwable.getMessage() != null && throwable.getMessage().toLowerCase().contains("database")) {
                 Intent reportIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.url_report_bug)))
                         .putExtra(INTENT_EXTRA_BUTTON_TEXT, R.string.error_action_report_issue);
                 add(R.string.error_dialog_tip_database_upgrade_failed, reportIntent);
                 add(R.string.error_dialog_tip_clear_storage, INTENT_APP_INFO);
+            }
+        } else if (throwable instanceof UnknownErrorException) {
+            if (account != null) {
+                add(R.string.error_dialog_unknown_error, new Intent(Intent.ACTION_VIEW)
+                        .putExtra(INTENT_EXTRA_BUTTON_TEXT, R.string.error_action_open_in_browser)
+                        .setData(Uri.parse(account.getUrl())));
+            } else {
+                add(R.string.error_dialog_unknown_error);
             }
         }
     }
@@ -158,5 +186,19 @@ public class TipsAdapter extends RecyclerView.Adapter<TipsViewHolder> {
     public void add(@StringRes int text, @Nullable Intent primaryAction) {
         tips.add(new TipsModel(text, primaryAction));
         notifyItemInserted(tips.size());
+    }
+
+    @Nullable
+    private static Intent getOpenFilesIntent(@NonNull Context context) {
+        final var pm = context.getPackageManager();
+        for (String app : APPS) {
+            try {
+                pm.getPackageInfo(app, PackageManager.GET_ACTIVITIES);
+                return pm.getLaunchIntentForPackage(app)
+                        .putExtra(INTENT_EXTRA_BUTTON_TEXT, R.string.error_action_open_nextcloud_app);
+            } catch (PackageManager.NameNotFoundException ignored) {
+            }
+        }
+        return null;
     }
 }

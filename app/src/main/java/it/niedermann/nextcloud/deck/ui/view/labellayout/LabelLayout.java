@@ -11,12 +11,11 @@ import com.google.android.flexbox.FlexboxLayout;
 import java.util.LinkedList;
 import java.util.List;
 
+import it.niedermann.android.util.DimensionUtil;
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.model.Label;
 import it.niedermann.nextcloud.deck.ui.view.labelchip.LabelChip;
-
-import static it.niedermann.nextcloud.deck.util.DimensionUtil.dpToPx;
 
 public abstract class LabelLayout extends FlexboxLayout {
 
@@ -27,7 +26,7 @@ public abstract class LabelLayout extends FlexboxLayout {
 
     public LabelLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.gutter = dpToPx(context, R.dimen.spacer_1hx);
+        this.gutter = DimensionUtil.INSTANCE.dpToPx(context, R.dimen.spacer_1hx);
     }
 
     /**
@@ -57,9 +56,9 @@ public abstract class LabelLayout extends FlexboxLayout {
     private void removeObsoleteLabels(List<Label> labels) {
         chipList:
         for (int i = 0; i < chipList.size(); i++) {
-            LabelChip currentChip = chipList.get(i);
-            final Label existingLabel = currentChip.getLabel();
-            for (Label label : labels) {
+            final var currentChip = chipList.get(i);
+            final var existingLabel = currentChip.getLabel();
+            for (final var label : labels) {
                 if (existingLabel.equals(label)) {
                     continue chipList;
                 }
@@ -76,15 +75,15 @@ public abstract class LabelLayout extends FlexboxLayout {
     private void addNewLabels(List<Label> labels) {
         int oldLabelSize = chipList.size();
         labelList:
-        for (Label label : labels) {
+        for (final var label : labels) {
             for (int i = 0; i < oldLabelSize; i++) {
-                final LabelChip currentChip = chipList.get(i);
-                final Label existingLabel = currentChip.getLabel();
+                final var currentChip = chipList.get(i);
+                final var existingLabel = currentChip.getLabel();
                 if (existingLabel.equals(label)) {
                     continue labelList;
                 }
             }
-            final LabelChip chip = createLabelChip(label);
+            final var chip = createLabelChip(label);
             addView(chip);
             chipList.add(chip);
         }

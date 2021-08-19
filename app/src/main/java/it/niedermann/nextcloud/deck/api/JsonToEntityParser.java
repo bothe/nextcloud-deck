@@ -1,17 +1,21 @@
 package it.niedermann.nextcloud.deck.api;
 
+import static it.niedermann.nextcloud.deck.exceptions.DeckException.Hint.CAPABILITIES_VERSION_NOT_PARSABLE;
+import static it.niedermann.nextcloud.deck.exceptions.TraceableException.makeTraceableIfFails;
+
+import android.graphics.Color;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import org.threeten.bp.DateTimeUtils;
-import org.threeten.bp.ZonedDateTime;
-import org.threeten.bp.format.DateTimeFormatter;
-
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import it.niedermann.android.util.ColorUtil;
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.exceptions.DeckException;
 import it.niedermann.nextcloud.deck.model.AccessControl;
@@ -22,6 +26,7 @@ import it.niedermann.nextcloud.deck.model.Label;
 import it.niedermann.nextcloud.deck.model.Stack;
 import it.niedermann.nextcloud.deck.model.User;
 import it.niedermann.nextcloud.deck.model.enums.ActivityType;
+import it.niedermann.nextcloud.deck.model.enums.EAttachmentType;
 import it.niedermann.nextcloud.deck.model.full.FullBoard;
 import it.niedermann.nextcloud.deck.model.full.FullCard;
 import it.niedermann.nextcloud.deck.model.full.FullStack;
@@ -38,11 +43,9 @@ import it.niedermann.nextcloud.deck.model.ocs.user.GroupMemberUIDs;
 import it.niedermann.nextcloud.deck.model.ocs.user.OcsUser;
 import it.niedermann.nextcloud.deck.model.ocs.user.OcsUserList;
 
-import static it.niedermann.nextcloud.deck.exceptions.DeckException.Hint.CAPABILITIES_VERSION_NOT_PARSABLE;
-import static it.niedermann.nextcloud.deck.exceptions.TraceableException.makeTraceableIfFails;
-
 public class JsonToEntityParser {
 
+    @SuppressWarnings("unchecked")
     protected static <T> T parseJsonObject(JsonObject obj, Class<T> mType) {
         if (mType == FullBoard.class) {
             return (T) parseBoard(obj);
@@ -73,7 +76,7 @@ public class JsonToEntityParser {
     }
 
     private static GroupMemberUIDs parseGroupMemberUIDs(JsonObject obj) {
-        DeckLog.verbose(obj.toString());
+        DeckLog.verbose(obj);
         GroupMemberUIDs uids = new GroupMemberUIDs();
         makeTraceableIfFails(() -> {
             JsonElement data = obj.get("ocs").getAsJsonObject().get("data");
@@ -91,7 +94,7 @@ public class JsonToEntityParser {
     }
 
     private static OcsUserList parseOcsUserList(JsonObject obj) {
-        DeckLog.verbose(obj.toString());
+        DeckLog.verbose(obj);
         OcsUserList ocsUserList = new OcsUserList();
         makeTraceableIfFails(() -> {
             JsonElement data = obj.get("ocs").getAsJsonObject().get("data");
@@ -114,17 +117,18 @@ public class JsonToEntityParser {
         }, obj);
         return ocsUserList;
     }
+
     private static OcsUser parseSingleOcsUser(JsonObject obj) {
-        DeckLog.verbose(obj.toString());
+        DeckLog.verbose(obj);
         OcsUser ocsUser = new OcsUser();
         makeTraceableIfFails(() -> {
             JsonElement data = obj.get("ocs").getAsJsonObject().get("data");
             if (!data.isJsonNull()) {
                 JsonObject user = data.getAsJsonObject();
-                if (user.has("id")){
+                if (user.has("id")) {
                     ocsUser.setId(user.get("id").getAsString());
                 }
-                if (user.has("displayname")){
+                if (user.has("displayname")) {
                     ocsUser.setDisplayName(user.get("displayname").getAsString());
                 }
             }
@@ -132,8 +136,9 @@ public class JsonToEntityParser {
         }, obj);
         return ocsUser;
     }
+
     private static OcsProjectList parseOcsProjectList(JsonObject obj) {
-        DeckLog.verbose(obj.toString());
+        DeckLog.verbose(obj);
         OcsProjectList projectList = new OcsProjectList();
         makeTraceableIfFails(() -> {
             JsonElement data = obj.get("ocs").getAsJsonObject().get("data");
@@ -147,10 +152,10 @@ public class JsonToEntityParser {
                         project.setName(getNullAsEmptyString(jsonObject.get("name")));
                         project.setResources(new ArrayList<>());
                         JsonElement jsonResources = jsonObject.get("resources");
-                        if (jsonResources != null && jsonResources.isJsonArray()){
+                        if (jsonResources != null && jsonResources.isJsonArray()) {
                             JsonArray resourcesArray = jsonResources.getAsJsonArray();
                             for (JsonElement resourceElement : resourcesArray) {
-                                if (resourceElement.isJsonObject()){
+                                if (resourceElement.isJsonObject()) {
                                     OcsProjectResource resource = parseOcsProjectResource(resourceElement.getAsJsonObject());
                                     resource.setProjectId(project.getId());
                                     project.getResources().add(resource);
@@ -167,13 +172,13 @@ public class JsonToEntityParser {
     }
 
     private static OcsProjectResource parseOcsProjectResource(JsonObject obj) {
-        DeckLog.verbose(obj.toString());
+        DeckLog.verbose(obj);
         OcsProjectResource resource = new OcsProjectResource();
         makeTraceableIfFails(() -> {
             if (obj.has("id")) {
                 String idString = obj.get("id").getAsString();
                 if (idString != null && idString.trim().length() > 0) {
-                    if (idString.matches("[0-9]+")){
+                    if (idString.matches("[0-9]+")) {
                         resource.setId(Long.parseLong(idString.trim()));
                     } else {
                         resource.setIdString(idString);
@@ -193,15 +198,15 @@ public class JsonToEntityParser {
                 resource.setIconUrl(getNullAsEmptyString(obj.get("iconUrl")));
             }
             if (obj.has("path")) {
-               resource.setPath(obj.get("path").getAsString());
+                resource.setPath(obj.get("path").getAsString());
             }
             if (obj.has("mimetype")) {
-               resource.setMimetype(obj.get("mimetype").getAsString());
+                resource.setMimetype(obj.get("mimetype").getAsString());
             }
             if (obj.has("preview-available")) {
-               resource.setPreviewAvailable(obj.get("preview-available").getAsBoolean());
+                resource.setPreviewAvailable(obj.get("preview-available").getAsBoolean());
             } else {
-               resource.setPreviewAvailable(false);
+                resource.setPreviewAvailable(false);
             }
 
         }, obj);
@@ -209,7 +214,7 @@ public class JsonToEntityParser {
     }
 
     private static OcsComment parseOcsComment(JsonObject obj) {
-        DeckLog.verbose(obj.toString());
+        DeckLog.verbose(obj);
         OcsComment comment = new OcsComment();
         makeTraceableIfFails(() -> {
             JsonElement data = obj.get("ocs").getAsJsonObject().get("data");
@@ -225,7 +230,7 @@ public class JsonToEntityParser {
     }
 
     private static DeckComment parseDeckComment(JsonElement data) {
-        DeckLog.verbose(data.toString());
+        DeckLog.verbose(data);
         DeckComment deckComment = new DeckComment();
 
         makeTraceableIfFails(() -> {
@@ -239,24 +244,25 @@ public class JsonToEntityParser {
             deckComment.setActorType(commentJson.get("actorType").getAsString());
             deckComment.setCreationDateTime(getTimestampFromString(commentJson.get("creationDateTime")));
 
-            if (commentJson.has("replyTo")){
-            JsonObject replyTo = commentJson.get("replyTo").getAsJsonObject();
-            deckComment.setParentId(replyTo.get("id").getAsLong());
-        }
-
-        JsonElement mentions = commentJson.get("mentions");
-        if (mentions != null && mentions.isJsonArray()) {
-            for (JsonElement mention : mentions.getAsJsonArray()) {
-                deckComment.addMention(parseMention(mention));
+            if (commentJson.has("replyTo")) {
+                JsonObject replyTo = commentJson.get("replyTo").getAsJsonObject();
+                deckComment.setParentId(replyTo.get("id").getAsLong());
             }
-        }}, data);
+
+            JsonElement mentions = commentJson.get("mentions");
+            if (mentions != null && mentions.isJsonArray()) {
+                for (JsonElement mention : mentions.getAsJsonArray()) {
+                    deckComment.addMention(parseMention(mention));
+                }
+            }
+        }, data);
 
         return deckComment;
     }
 
     private static Mention parseMention(JsonElement mentionJson) {
         Mention mention = new Mention();
-        DeckLog.verbose(mentionJson.toString());
+        DeckLog.verbose(mentionJson);
 
 
         makeTraceableIfFails(() -> {
@@ -273,13 +279,20 @@ public class JsonToEntityParser {
     protected static FullBoard parseBoard(JsonObject e) {
         FullBoard fullBoard = new FullBoard();
 
-        DeckLog.verbose(e.toString());
+        DeckLog.verbose(e);
         Board board = new Board();
 
         makeTraceableIfFails(() -> {
             board.setTitle(getNullAsEmptyString(e.get("title")));
             board.setColor(getNullAsEmptyString(e.get("color")));
-            board.setArchived(e.get("archived").getAsBoolean());
+            board.setEtag(getNullAsNull(e.get("ETag")));
+            // bugfix inital sync missing archived flag
+            boolean isArchived = false;
+            if (e.has("archived")) {
+                JsonElement archived = e.get("archived");
+                isArchived = !archived.isJsonNull() && archived.getAsBoolean();
+            }
+            board.setArchived(isArchived);
 
             board.setLastModified(getTimestampFromLong(e.get("lastModified")));
             board.setDeletedAt(getTimestampFromLong(e.get("deletedAt")));
@@ -358,7 +371,7 @@ public class JsonToEntityParser {
     }
 
     protected static AccessControl parseAcl(JsonObject aclJson) {
-        DeckLog.verbose(aclJson.toString());
+        DeckLog.verbose(aclJson);
         AccessControl acl = new AccessControl();
 
         if (aclJson.has("participant") && !aclJson.get("participant").isJsonNull()) {
@@ -381,7 +394,7 @@ public class JsonToEntityParser {
     }
 
     protected static FullCard parseCard(JsonObject e) {
-        DeckLog.verbose(e.toString());
+        DeckLog.verbose(e);
         FullCard fullCard = new FullCard();
         Card card = new Card();
         fullCard.setCard(card);
@@ -391,6 +404,7 @@ public class JsonToEntityParser {
             card.setDescription(getNullAsEmptyString(e.get("description")));
             card.setStackId(e.get("stackId").getAsLong());
             card.setType(getNullAsEmptyString(e.get("type")));
+            card.setEtag(getNullAsNull(e.get("ETag")));
             card.setLastModified(getTimestampFromLong(e.get("lastModified")));
             card.setCreatedAt(getTimestampFromLong(e.get("createdAt")));
             card.setDeletedAt(getTimestampFromLong(e.get("deletedAt")));
@@ -445,12 +459,13 @@ public class JsonToEntityParser {
     }
 
     protected static Attachment parseAttachment(JsonObject e) {
-        DeckLog.verbose(e.toString());
+        DeckLog.verbose(e);
         Attachment a = new Attachment();
         makeTraceableIfFails(() -> {
             a.setId(e.get("id").getAsLong());
             a.setCardId(e.get("cardId").getAsLong());
-            a.setType(e.get("type").getAsString());
+            a.setType(EAttachmentType.findByValue(e.get("type").getAsString()));
+            a.setEtag(getNullAsNull(e.get("ETag")));
             a.setData(e.get("data").getAsString());
             a.setLastModified(getTimestampFromLong(e.get("lastModified")));
             a.setCreatedAt(getTimestampFromLong(e.get("createdAt")));
@@ -460,6 +475,9 @@ public class JsonToEntityParser {
                 JsonObject extendedData = e.getAsJsonObject("extendedData").getAsJsonObject();
                 a.setFilesize(extendedData.get("filesize").getAsLong());
                 a.setMimetype(extendedData.get("mimetype").getAsString());
+                if (extendedData.has("fileid") && !extendedData.get("fileid").isJsonNull()) {
+                    a.setFileId(extendedData.get("fileid").getAsLong());
+                }
                 if (extendedData.has("info") && !extendedData.get("info").isJsonNull()) {
                     JsonObject info = extendedData.getAsJsonObject("info").getAsJsonObject();
                     a.setDirname(info.get("dirname").getAsString());
@@ -476,8 +494,8 @@ public class JsonToEntityParser {
     }
 
     protected static User parseUser(JsonElement userElement) {
-        DeckLog.verbose(userElement.toString());
-        if (userElement.isJsonNull()){
+        DeckLog.verbose(userElement);
+        if (userElement.isJsonNull()) {
             return null;
         }
         User user = new User();
@@ -501,7 +519,7 @@ public class JsonToEntityParser {
 
 
     protected static Capabilities parseCapabilities(JsonObject e) {
-        DeckLog.verbose(e.toString());
+        DeckLog.verbose(e);
         Capabilities capabilities = new Capabilities();
         // not traceable, we need the original DeckException for error handling
         if (e.has("ocs")) {
@@ -543,8 +561,8 @@ public class JsonToEntityParser {
                     }
                     if (caps.has("theming")) {
                         JsonObject theming = caps.getAsJsonObject("theming");
-                        capabilities.setColor(theming.get("color").getAsString());
-                        capabilities.setTextColor(theming.get("color-text").getAsString());
+                        capabilities.setColor(getColorAsInt(theming, "color"));
+                        capabilities.setTextColor(getColorAsInt(theming, "color-text"));
                     }
                 }
                 capabilities.setDeckVersion(Version.of(version));
@@ -553,35 +571,21 @@ public class JsonToEntityParser {
         return capabilities;
     }
 
-    protected static List<Activity> parseActivity(JsonObject e) {
-        DeckLog.verbose(e.toString());
-        List<Activity> activityList = new ArrayList<>();
-
-        makeTraceableIfFails(() -> {
-            if (e.has("ocs")) {
-                JsonObject ocs = e.getAsJsonObject("ocs");
-                if (ocs.has("data")) {
-                    JsonArray data = ocs.getAsJsonArray("data");
-                    for (JsonElement activityJson : data) {
-                        Activity activity = new Activity();
-                        JsonObject activityObject = activityJson.getAsJsonObject();
-
-                        activity.setId(activityObject.get("activity_id").getAsLong());
-                        activity.setType(ActivityType.findByPath(getNullAsEmptyString(activityObject.get("icon"))).getId());
-                        activity.setSubject(getNullAsEmptyString(activityObject.get("subject")));
-                        activity.setCardId(activityObject.get("object_id").getAsLong());
-                        activity.setLastModified(getTimestampFromString(activityObject.get("datetime")));
-
-                        activityList.add(activity);
-                    }
-                }
+    private static int getColorAsInt(JsonObject element, String field) {
+        String rawString = getNullAsEmptyString(element.get(field));
+        try {
+            if (!rawString.trim().isEmpty()) {
+                String colorAsString = ColorUtil.INSTANCE.formatColorToParsableHexString(rawString);
+                return Color.parseColor(colorAsString);
             }
-        }, e);
-        return activityList;
+        } catch (Exception e) {
+            // Do mostly nothing, return default value
+        }
+        return Color.GRAY;
     }
 
     protected static FullStack parseStack(JsonObject e) {
-        DeckLog.verbose(e.toString());
+        DeckLog.verbose(e);
         FullStack fullStack = new FullStack();
         Stack stack = new Stack();
         fullStack.setStack(stack);
@@ -589,6 +593,7 @@ public class JsonToEntityParser {
             stack.setTitle(getNullAsEmptyString(e.get("title")));
             stack.setBoardId(e.get("boardId").getAsLong());
             stack.setId(e.get("id").getAsLong());
+            stack.setEtag(getNullAsNull(e.get("ETag")));
             stack.setLastModified(getTimestampFromLong(e.get("lastModified")));
             stack.setDeletedAt(getTimestampFromLong(e.get("deletedAt")));
             if (e.has("order") && !e.get("order").isJsonNull()) {
@@ -609,37 +614,70 @@ public class JsonToEntityParser {
         return fullStack;
     }
 
+    protected static List<Activity> parseActivity(JsonObject e) {
+        DeckLog.verbose(e);
+        List<Activity> activityList = new ArrayList<>();
+
+        makeTraceableIfFails(() -> {
+            if (e.has("ocs")) {
+                JsonObject ocs = e.getAsJsonObject("ocs");
+                if (ocs.has("data")) {
+                    JsonArray data = ocs.getAsJsonArray("data");
+                    for (JsonElement activityJson : data) {
+                        Activity activity = new Activity();
+                        JsonObject activityObject = activityJson.getAsJsonObject();
+
+                        activity.setId(activityObject.get("activity_id").getAsLong());
+                        activity.setType(ActivityType.findByPath(getNullAsEmptyString(activityObject.get("icon"))).getId());
+                        activity.setSubject(getNullAsEmptyString(activityObject.get("subject")));
+                        activity.setCardId(activityObject.get("object_id").getAsLong());
+                        activity.setEtag(getNullAsNull(e.get("ETag")));
+                        activity.setLastModified(getTimestampFromString(activityObject.get("datetime")));
+
+                        activityList.add(activity);
+                    }
+                }
+            }
+        }, e);
+        return activityList;
+    }
+
     protected static Label parseLabel(JsonObject e) {
-        DeckLog.verbose(e.toString());
+        DeckLog.verbose(e);
         Label label = new Label();
         makeTraceableIfFails(() -> {
             label.setId(e.get("id").getAsLong());
-            //todo: last modified!
+            // TODO last modified!
 //          label.setLastModified(get);
             label.setTitle(getNullAsEmptyString(e.get("title")));
-            label.setColor(getNullAsEmptyString(e.get("color")));
+            label.setEtag(getNullAsNull(e.get("ETag")));
+            label.setColor(getColorAsInt(e, "color"));
         }, e);
         return label;
     }
 
     private static String getNullAsEmptyString(JsonElement jsonElement) {
-        return jsonElement.isJsonNull() ? "" : jsonElement.getAsString();
+        return jsonElement == null || jsonElement.isJsonNull() ? "" : jsonElement.getAsString();
     }
 
-    private static Date getTimestampFromString(JsonElement jsonElement) {
-        if (jsonElement.isJsonNull()) {
+    private static String getNullAsNull(JsonElement jsonElement) {
+        return jsonElement == null || jsonElement.isJsonNull() ? null : jsonElement.getAsString();
+    }
+
+    private static Instant getTimestampFromString(JsonElement jsonElement) {
+        if (jsonElement == null || jsonElement.isJsonNull()) {
             return null;
         } else {
             String dateAsString = jsonElement.getAsString();
-            return DateTimeUtils.toDate(ZonedDateTime.from(DateTimeFormatter.ISO_DATE_TIME.parse(dateAsString)).toInstant());
+            return ZonedDateTime.from(DateTimeFormatter.ISO_DATE_TIME.parse(dateAsString)).toInstant();
         }
     }
 
-    private static Date getTimestampFromLong(JsonElement jsonElement) {
-        if (jsonElement.isJsonNull()) {
+    private static Instant getTimestampFromLong(JsonElement jsonElement) {
+        if (jsonElement == null || jsonElement.isJsonNull()) {
             return null;
         } else {
-            return new Date(jsonElement.getAsLong() * 1000);
+            return Instant.ofEpochMilli(jsonElement.getAsLong() * 1000);
         }
     }
 }

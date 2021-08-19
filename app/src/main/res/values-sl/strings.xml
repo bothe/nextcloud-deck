@@ -1,14 +1,6 @@
 <resources>
     <string name="navigation_drawer_open">Odpri bočno okno</string>
     <string name="navigation_drawer_close">Zapri bočno okno</string>
-
-    <string name="drawer_header_background">Slika ozadja glave bočnega okna</string>
-    <string name="drawer_current_account">Trenutni račun</string>
-    <string name="drawer_middle_account">Srednji račun</string>
-    <string name="drawer_end_account">Zadnji račun</string>
-    <string name="drawer_manage_accounts">Upravljanje z računi</string>
-
-    <!-- Simple values -->
     <string name="simple_boards">Zbirke</string>
     <string name="simple_add">Dodaj</string>
     <string name="simple_save">Shrani</string>
@@ -39,13 +31,11 @@
     <string name="simple_copied">Kopirano!</string>
     <string name="simple_archive">Arhiv</string>
     <string name="simple_unassigned">Nedodeljeno</string>
-
     <string name="edit_board">Uredi zbirko</string>
     <string name="archive_board">Arhiviraj zbirko</string>
     <string name="delete_board">Izbriši zbirko</string>
     <string name="delete_something">Izbriši %1$s</string>
 
-    <!-- About -->
     <string name="about">O programu</string>
     <string name="about_version_title">Različica</string>
     <string name="about_version">Trenutno je v uporabi %1$s</string>
@@ -71,9 +61,6 @@
     <string name="about_credits_tab_title">Zasluge</string>
     <string name="about_contribution_tab_title">Skupnost</string>
     <string name="about_license_tab_title">Dovoljenje</string>
-
-    <string name="copied_to_clipboard">Kopirano v odložišče</string>
-
     <string name="seconds_ago">pred nekaj sekundami</string>
     <string name="edit">Uredi</string>
     <string name="label_labels">Izbor oznak</string>
@@ -114,6 +101,7 @@
     <string name="no_lists_yet">Ni še dodanega seznama</string>
     <string name="do_you_want_to_save_your_changes">Ali želite shraniti spremembe?</string>
     <string name="do_you_want_to_archive_all_cards_of_the_list">Ali želite arhivirati vse naloge %1$s?</string>
+    <string name="do_you_want_to_archive_all_cards_of_the_filtered_list">Ali želite arhivirati vse filtrirane naloge %1$s?</string>
     <plurals name="do_you_want_to_delete_the_current_list">
         <item quantity="one">S tem boste trajno izbrisali %1$d nalogo tega seznama.</item>
         <item quantity="two">S tem boste trajno izbrisali %1$d nalogi tega seznama.</item>
@@ -128,17 +116,27 @@
     </plurals>
     <string name="add_a_new_list_using_the_button">Nov seznam dodate s klikom na gumb +</string>
     <string name="add_a_new_card_using_the_button">Novo nalogo je mogoče dodati z gumbom +</string>
-    <string name="update_deck">Posodobi zbirko</string>
-    <string name="your_deck_version_is_too_old">Različica zbirke je prestara</string>
+    <string name="update_deck">Posodobi spletni program Deck</string>
     <string name="deck_outdated_please_update">Različica zbirke je prestara (%1$s). Za uporabo tega odjemalca je treba zbirko najprej posodobiti.</string>
     <string name="delete_board_message">S tem dejanjem bo zbirka z vsemi paketi nalog in nalogami trajno izbrisana.</string>
-    <string name="settings_theme_title">Temna tema</string>
+    <string name="settings_theme_title">Tema</string>
     <string name="settings_branding_title">Prilagajanje oblikovanja</string>
     <string name="settings_compact_title">Stisnjen pogled</string>
+    <string name="settings_cover_images_title">Naslovne slike</string>
+    <string name="settings_debugging">Razhroščevanje dnevnikov</string>
+    <string name="settings_etags">Uporabi oznake ETag</string>
+    <string name="settings_etags_summary">Pospeši usklajevanje</string>
     <string name="settings_background_sync"> Usklajevanje v ozadju</string>
+    <string name="settings_compress_image_attachments">Stisni slike pri pošiljanju</string>
+    <string name="search_in">Poišči v %1$s</string>
+    <string name="settings_compress_image_attachments_summary">Hitrejše pošiljanje, a slabša kakovost</string>
     <string name="pref_value_wifi_and_mobile">Usklajuj na Wi-Fi in mobilni povezavi</string>
     <string name="pref_value_wifi_only">Usklajuj le na Wi-Fi</string>
-    <string name="pref_value_theme_light">Svetla</string>
+    <string-array name="darkmode_entries">
+        <item>Sistemsko privzeto</item>
+        <item>Svetla</item>
+        <item>Temna</item>
+    </string-array>
     <string name="unassigned_user">Uporabnik %1$s je odstranjen</string>
     <string name="no_activities">Na tej nalogi še ni zaznane nobene dejavnosti. Za prikaz dejavnosti mora biti vzpostavljena povezava z omrežjem.</string>
     <string name="share_board">Souporaba zbirke</string>
@@ -154,15 +152,11 @@
     <string name="hours_6">6 ur</string>
     <string name="action_card_move">Premakni nalogo</string>
     <string name="action_card_move_title">Premakni %1$s</string>
-    <string name="please_add_an_account_first">Najprej je treba dodati račun</string>
-    <string name="title_is_mandatory">Naslov je obvezen</string>
     <string name="provide_at_least_a_title_or_description">Vpisati je treba vsaj naslov oziroma opis</string>
     <string name="welcome_text">Dobrodošli v %1$s</string>
-    <string name="save_card_before_attachment">Nalogo je treba shraniti, preden je mogoče dodati prilogo.</string>
     <string name="maintenance_mode_explanation">Strežnik %1$s je trenutno v načinu vzdrževanja. Stopite v stik s skrbnikom, ali pa poskusite kasneje.</string>
     <string name="share_add_to_card">Dodaj k nalogi</string>
     <string name="share_success">Uspešno dodano %1$s v %2$s</string>
-    <string name="could_not_copy_to_clipboard">Predmeta ni mogoče kopirati v odložišče</string>
     <string name="add_comment">Dodaj opombo</string>
     <string name="card_edit_comments">Opombe</string>
     <string name="no_comments_yet">Ni še dodane nobene opombe</string>
@@ -174,22 +168,21 @@
     <string name="open_in_browser">Odpri v brskalniku</string>
     <string name="updating_card">Poteka posodabljanje naloge ...</string>
 
-    <!-- Move lists -->
     <string name="move_list_right">Pomakni seznam desno</string>
     <string name="move_list_left">Pomakni seznam levo</string>
 
-    <!-- Filter -->
     <string name="filter_no_filter">Vse</string>
     <string name="filter_overdue">Preteklo</string>
     <string name="filter_today">Danes</string>
+    <string name="filter_tomorrow">Jutri</string>
     <string name="filter_week">Naslednjih 7 dni</string>
     <string name="filter_month">Naslednjih 30 dni</string>
     <string name="filter_no_due">Ni datuma preteka</string>
+    <string name="filter_later">Kasneje</string>
     <string name="filter_by_tag">Filtriraj po oznaki</string>
     <string name="filter_by_assigned_user">Filtriraj po dodeljenem uporabniku</string>
     <string name="filter_by_duedate">Filtriraj po datumu preteka</string>
 
-    <!-- Archived cards -->
     <string name="archived_cards">Arhivirane naloge</string>
     <string name="action_card_dearchive">Razveljavi arhiviranje naloge</string>
     <string name="action_archived_cards">Prebrskaj med arhiviranimi nalogami</string>
@@ -204,20 +197,16 @@
     <string name="filter_user_title">Uporabniki</string>
     <string name="filter_duedate_title">Datum preteka</string>
 
-    <!-- Archived boards -->
     <string name="action_board_dearchive">Razveljavi arhiviranje zbirke</string>
     <string name="archived_boards">Arhivirane zbirke</string>
 
-    <!-- Errors -->
     <string name="error">Prišlo je do napake</string>
     <string name="synchronization_failed">Usklajevanje je spodletelo</string>
     <string name="operation_not_yet_supported">Možnost še ni podprta</string>
     <string name="error_revoking_ac">Prišlo je do napake med obnavljanjem dostopa do %1$s.</string>
     <string name="error_create_label">Prišlo je do napake med ustvarjanjem oznake %1$s.</string>
-    <string name="maintenance_mode">Strežnik je v načinu vzdrževanja</string>
-    <string name="server_misconfigured">Strežnik je napačno nastavljen</string>
+    <string name="maintenance_mode">Strežnik je v načinu vzdrževanja.</string>
     <string name="server_error">Napaka strežnika</string>
-    <string name="shared_error">Souporaba vsebine prek programov iz tretje roke še ni povsem podprto. Datoteko najprej prejmite in omogočite souporabo prek datotek ali galerije.</string>
     <string name="error_edit_activity_killed_by_android">Urejevalni način je bil sistemsko zaustavljen, ker druge naprave zahtevajo več virov.</string>
 
     <string name="error_dialog_title">Ojoj, kaj pa zdaj? 🙁</string>
@@ -226,6 +215,8 @@
     <string name="error_dialog_tip_database_upgrade_failed">Nadgradnja podatkovne zbirke je spodletela. Pošljite poročilo o napaki in nato počistite shrambo za normalno uporabo programa.</string>
     <string name="error_dialog_tip_clear_storage">Shrambo je mogoče počistiti med podrobnostmi programa Shramba → Počisti shrambo.</string>
     <string name="error_dialog_tip_files_outdated">Program Nextcloud je očitno starejše različice. Posodobite jo prek Trgovine Play ali s posodabljalnikom F-Droid.</string>
+    <string name="error_dialog_tip_offline">Kaže, da ste sprožili usklajevanje brez ustrezno vzpostavljene povezave z omrežjem.</string>
+    <string name="error_dialog_tip_sync_only_on_wifi">Če je izbrana možnost »Usklajuj le prek povezave Wi-Fi«, je usklajevanje mogoče izključno ob uporabi povezave Wi-Fi.</string>
     <string name="error_dialog_tip_files_force_stop">Kaže, da je nekaj narobe s programom Nextcloud. Poskusite vsiljeno zaustaviti programa Nextcloud in Nextcloud Deck.</string>
     <string name="error_dialog_tip_files_delete_storage">Vsiljeno zaustavljanje ni imelo ustreznega učinka. Poskusite lahko še počistiti podatke shrambe obeh programov.</string>
     <string name="error_dialog_timeout_instance">V podanem času program ni pridobil ustreznega odziva strežnika. Prepričajte se, da program deluje pravilno.</string>
@@ -241,21 +232,25 @@
     <string name="error_dialog_user_not_found_in_database">Trenutno izbrani uporabnik nima ustreznih dovoljenj. Če uporabljate LDAP ima morda progam Nextcloud shranjen star ID uporabnika.</string>
     <string name="error_dialog_capabilities_not_parsable">Ni mogoče pridobiti podatkov o zmožnostih strežnika. Prepričajte se, da strežnik teče in da imajo programi dostop do okolja Nextcloud.</string>
     <string name="error_dialog_attachment_upload_failed">Priloge ni mogoče poslati. Souporabo omogočite na nek drug način, nam pa posredujte poročilo o hrošču.</string>
+    <string name="error_dialog_certificate">Prišlo je do napake pri branju potrdila strežnika. Preverite vse račune v programu Nextcloud za več podrobnosti.</string>
     <string name="error_dialog_tip_disable_battery_optimizations">Onemogočite vso optimizacijo porabe baterije za programa Nextcloud in Deck.</string>
     <string name="error_action_open_deck_info">Odpri podrobnosti programa</string>
+    <string name="error_action_open_nextcloud_app">Odpri program Nextcloud</string>
     <string name="error_action_open_network">Nastavitve omrežja</string>
     <string name="error_action_server_logs">Dnevniki strežnika</string>
     <string name="error_action_install">Namesti</string>
     <string name="error_action_report_issue">Poročilo</string>
-    <string name="info_box_maintenance_mode">Strežnik je v načinu vzdrževanja</string>
+    <string name="info_box_maintenance_mode">Strežnik je v načinu vzdrževanja.</string>
     <string name="info_box_version_not_supported">Različica strežnika %1$s ni podprta. Priporočljiva je posodobitev na različico %2$s.</string>
     <string name="share_link">Povezava za souporabo</string>
+    <string name="share_content">Souporaba vsebine</string>
+    <string name="share_content_duedate">Datum preteka: %1$s</string>
+    <string name="share_content_labels">Oznake: %1$s</string>
     <string name="archive_cards">Arhiviraj naloge</string>
 
     <string name="manage_accounts">Upravljanje z računi</string>
     <string name="manage_list">Upravljanje seznama</string>
     <string name="simple_reply">Odgovori</string>
-    <string name="error_while_uploading_attachment">Prišlo je do napake med pošiljanjem priloge: %1$s</string>
     <string name="append_text_to_description">Pripni k opisu</string>
     <string name="add_text_as_comment">Dodaj opombo</string>
     <string name="progress_count">%1$d od %2$d</string>
@@ -275,8 +270,9 @@
     <string name="card_does_not_yet_exist">Naloga v Deck še ne obstaja</string>
 
     <string name="widget_stack_title">Seznam</string>
+    <string name="widget_filter_title">Filter</string>
     <string name="widget_stack_header_icon">Ikona glave gradnika</string>
-    <string name="widget_stack_placeholder_icon">Ikona ročnika gradnika</string>
+    <string name="widget_placeholder_icon">Ikona vsebnika gradnika</string>
     <string name="select_stack">Izbor seznama</string>
     <string name="project_type_deck_board">Zbirka Deck</string>
     <string name="project_type_deck_card">Naloga Deck</string>
@@ -292,5 +288,38 @@
     <string name="single_card">Enojna naloga</string>
     <string name="project_type_room">Klepetalnica</string>
     <string name="simple_move">Premakni</string>
-    <string name="cannot_upload_files_without_permission">Ne morem naložiti datoteke brez dovoljenja</string>
+    <string name="cannot_upload_files_without_permission">Brez ustreznih dovoljenj ni mogoče naložiti datotek</string>
+    <string name="clone_cards">Kloniraj nalogo</string>
+    <string name="simple_clone">Kloniraj</string>
+    <string name="user_avatar">Podoba uporabnika</string>
+    <string name="simple_unassign">Odstrani</string>
+    <string name="simple_contact">Stik</string>
+    <string name="simple_file">Datoteka</string>
+    <string name="simple_camera">Kamera</string>
+    <string name="take_photo">Zajemi posnetek</string>
+    <string name="take_photo_switch_camera">Preklopi kamero</string>
+    <string name="take_photo_toggle_torch">Preklopi bliskavico</string>
+    <string name="show_all_contacts">Prikaži vse stike</string>
+    <string name="show_all_files">Pokaži vse datoteke</string>
+    <string name="recent">Nedavne</string>
+    <string name="upload_a_new_attachment">Pošlji novo prilogo</string>
+    <string name="contacts">Stiki</string>
+    <string name="downloads">Prejemi</string>
+    <string name="files">Datoteke</string>
+    <string name="gallery">Galerija</string>
+    <string name="simple_attach">pripni</string>
+    <string name="add_stack_widget">Dodaj gradnik seznama</string>
+    <string name="add_filter_widget">Dodaj gradnik filtra</string>
+    <string name="simple_order">Razvrstitev</string>
+    <string name="edit_description">Uredi opis</string>
+    <string name="widget_upcoming_title">Prihajajoče naloge</string>
+    <!-- Category header for a section in the settings which contain features for advanced users -->
+    <string name="simple_expert_settings">Napredne nastavitve</string>
+    <string name="copy_logs">Kopiraj dnevnike v odložišče</string>
+    <string name="app_logo">Logo programa</string>
+    <string name="log_file">Datoteka dnevnika</string>
+    <string name="copying_logs_to_file">Poteka kopiranje datotek dnevnikov ...</string>
+    <string name="account_imported">Račun je uvožen</string>
+    <string name="simple_search">Poišči</string>
+    <string name="saving_new_card">Shranjevanje nove naloge...</string>
 </resources>

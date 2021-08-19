@@ -1,6 +1,5 @@
 package it.niedermann.nextcloud.deck.persistence.sync.adapters.db.dao;
 
-import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Query;
 
@@ -40,11 +39,14 @@ public interface JoinCardWithLabelDao extends GenericDao<JoinCardWithLabel> {
     @Query("select * from joincardwithlabel WHERE status <> 1") // not UP_TO_DATE
     List<JoinCardWithLabel> getAllChangedJoins();
 
+    @Query("select j.* from joincardwithlabel j inner join card c on j.cardId = c.localId  WHERE c.stackId = :localStackId and j.status <> 1") // not UP_TO_DATE
+    List<JoinCardWithLabel> getAllChangedJoinsForStack(Long localStackId);
+
     @Query("delete from joincardwithlabel " +
             "where cardId = (select c.localId from card c where c.accountId = :accountId and c.id = :remoteCardId) " +
             "and labelId = (select l.localId from label l where l.accountId = :accountId and l.id = :remoteLabelId)")
     void deleteJoinedLabelForCardPhysicallyByRemoteIDs(Long accountId, Long remoteCardId, Long remoteLabelId);
 
     @Query("select count(*) from joincardwithlabel WHERE labelId = :localLabelId and status <> 3") // not locally deleted
-    LiveData<Integer> countCardsWithLabel(long localLabelId);
+    int countCardsWithLabelDirectly(long localLabelId);
 }

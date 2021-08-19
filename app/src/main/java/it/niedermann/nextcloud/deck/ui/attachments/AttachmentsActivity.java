@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.SharedElementCallback;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -24,7 +25,6 @@ import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.ActivityAttachmentsBinding;
 import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.model.Attachment;
-import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
 import it.niedermann.nextcloud.deck.ui.exception.ExceptionHandler;
 import it.niedermann.nextcloud.deck.util.MimeTypeUtil;
 
@@ -35,6 +35,7 @@ public class AttachmentsActivity extends AppCompatActivity {
     private static final String BUNDLE_KEY_CURRENT_ATTACHMENT_LOCAL_ID = "currentAttachmenLocaltId";
 
     private ActivityAttachmentsBinding binding;
+    private AttachmentsViewModel viewModel;
     private ViewPager2.OnPageChangeCallback onPageChangeCallback;
 
     @Override
@@ -43,11 +44,13 @@ public class AttachmentsActivity extends AppCompatActivity {
         Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
 
         binding = ActivityAttachmentsBinding.inflate(getLayoutInflater());
+        viewModel = new ViewModelProvider(this).get(AttachmentsViewModel.class);
+
         setContentView(binding.getRoot());
         supportPostponeEnterTransition();
 
         setSupportActionBar(binding.toolbar);
-        final Drawable navigationIcon = getResources().getDrawable(R.drawable.ic_arrow_back_white_24dp);
+        final Drawable navigationIcon = ContextCompat.getDrawable(this, R.drawable.ic_arrow_back_white_24dp);
         DrawableCompat.setTint(navigationIcon, ContextCompat.getColor(this, android.R.color.white));
         binding.toolbar.setNavigationIcon(navigationIcon);
 
@@ -64,8 +67,7 @@ public class AttachmentsActivity extends AppCompatActivity {
 
         long cardId = args.getLong(BUNDLE_KEY_CARD_ID);
 
-        final SyncManager syncManager = new SyncManager(this);
-        syncManager.getFullCardWithProjectsByLocalId(account.getId(), cardId).observe(this, fullCard -> {
+        viewModel.getFullCardWithProjectsByLocalId(account.getId(), cardId).observe(this, fullCard -> {
             final List<Attachment> attachments = new ArrayList<>();
             for (Attachment a : fullCard.getAttachments()) {
                 if (MimeTypeUtil.isImage(a.getMimetype())) {
@@ -110,7 +112,7 @@ public class AttachmentsActivity extends AppCompatActivity {
                     long currentAttachmentLocalId = attachments.get(binding.viewPager.getCurrentItem()).getLocalId();
                     String transitionKey = getString(R.string.transition_attachment_preview, String.valueOf(currentAttachmentLocalId));
                     if (transitionKey.equals(names.get(0))) {
-                        sharedElements.put(transitionKey, binding.viewPager.getRootView().findViewById(R.id.preview)
+                        sharedElements.put(transitionKey, binding.viewPager.getRootView().findViewById(R.id.avatar)
                         );
                     }
 

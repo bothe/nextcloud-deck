@@ -8,7 +8,6 @@
     <string name="drawer_end_account">חשבון אחרון</string>
     <string name="drawer_manage_accounts">ניהול חשבונות</string>
 
-    <!-- Simple values -->
     <string name="simple_boards">לוחות</string>
     <string name="simple_add">הוספה</string>
     <string name="simple_save">שמור</string>
@@ -43,7 +42,6 @@
     <string name="delete_board">מחק לוח</string>
     <string name="delete_something">מחיקת %1$s</string>
 
-    <!-- About -->
     <string name="about">על אודות</string>
     <string name="about_version_title">גרסה</string>
     <string name="about_version">אתה משתמש כרגע ב%1$s</string>
@@ -69,9 +67,6 @@
     <string name="about_credits_tab_title">תודות</string>
     <string name="about_contribution_tab_title">תרומה</string>
     <string name="about_license_tab_title">רישיון</string>
-
-    <string name="copied_to_clipboard">הועתק ללוח הגזירים</string>
-
     <string name="seconds_ago">לפני מספר שניות</string>
     <string name="edit">עריכה</string>
     <string name="label_labels">בחירת תגיות</string>
@@ -129,12 +124,10 @@
     <string name="your_deck_version_is_too_old">גרסת החפיסה שלך ישנה מדי</string>
     <string name="deck_outdated_please_update">גרסת החפיסה שלך ישנה מדי (%1$s). נא לעדכן כדי להשתמש ביישומון Android זה כלקוח.</string>
     <string name="delete_board_message">פעולה זו תמחק את הלוח הזה על כל רשימותיו וכרטיסיו.</string>
-    <string name="settings_theme_title">ערכת עיצוב כהה</string>
     <string name="settings_branding_title">מיתוג</string>
     <string name="settings_background_sync">סנכרון ברקע</string>
     <string name="pref_value_wifi_and_mobile">עדכון דרך רשת אלחוטית ונתונים סלולריים</string>
     <string name="pref_value_wifi_only">סנכרון רק דרך רשת אלחוטית</string>
-    <string name="pref_value_theme_light">בהירה</string>
     <string name="unassigned_user">ההקצאה אל %1$s בוטלה</string>
     <string name="no_activities">אין פעילויות בכרטיס הזה. עליך להתחבר לאינטרנט כדי לטעון ולהציג פעילויות.</string>
     <string name="share_board">שיתוף לוח</string>
@@ -158,7 +151,6 @@
     <string name="maintenance_mode_explanation">השרת %1$s נמצא במצב תחזוקה. נא ליצור קשר עם ההנהלה או לנסות מאוחר יותר.</string>
     <string name="share_add_to_card">הוספה לכרטיס</string>
     <string name="share_success">%1$s נוסף בהצלחה אל %2$s</string>
-    <string name="could_not_copy_to_clipboard">לא ניתן להעתיק ללוח הגזירים</string>
     <string name="add_comment">הוספת הערה</string>
     <string name="card_edit_comments">תגובות</string>
     <string name="no_comments_yet">אין הערות עדיין</string>
@@ -170,11 +162,9 @@
     <string name="open_in_browser">פתיחה בדפדפן</string>
     <string name="updating_card">הכרטיס מעודכן…</string>
 
-    <!-- Move lists -->
     <string name="move_list_right">העברת רשימה ימינה</string>
     <string name="move_list_left">העברת רשימה שמאלה</string>
 
-    <!-- Filter -->
     <string name="filter_no_filter">הכול</string>
     <string name="filter_overdue">באיחור</string>
     <string name="filter_today">היום</string>
@@ -185,7 +175,6 @@
     <string name="filter_by_assigned_user">סינון לפי משתמש מוקצה</string>
     <string name="filter_by_duedate">סינון לפי תאריך יעד</string>
 
-    <!-- Archived cards -->
     <string name="archived_cards">כרטיסים בארכיון</string>
     <string name="action_card_dearchive">ביטול העברת כרטיס לארכיון</string>
     <string name="action_archived_cards">עיון בכרטיסים בארכיון</string>
@@ -200,11 +189,9 @@
     <string name="filter_user_title">משתמשים</string>
     <string name="filter_duedate_title">תאריך יעד</string>
 
-    <!-- Archived boards -->
     <string name="action_board_dearchive">ביטול העברת הלוח לארכיון</string>
     <string name="archived_boards">לוחות שנשמרו בארכיון</string>
 
-    <!-- Errors -->
     <string name="error">הופיעה שגיאה</string>
     <string name="synchronization_failed">הסנכרון נכשל</string>
     <string name="operation_not_yet_supported">אין תמיכה עדיין</string>
@@ -233,6 +220,8 @@
     <string name="simple_report">דיווח</string>
     <string name="clone_board">שכפול לוח</string>
     <string name="widget_stack_title">רשימה</string>
+    <string name="project_type_deck_board">לוח חסיפה</string>
+    <string name="project_type_deck_card">כרטיס בחסיפה</string>
     <string name="project_type_file">קובץ</string>
     <string name="projects_title">מיזמים</string>
     <string name="simple_move">העברה</string>

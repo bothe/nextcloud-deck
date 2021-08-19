@@ -1,11 +1,13 @@
 package it.niedermann.nextcloud.deck.persistence.sync.helpers.providers;
 
-import java.util.Date;
+import androidx.annotation.Nullable;
+
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import it.niedermann.nextcloud.deck.DeckLog;
-import it.niedermann.nextcloud.deck.api.IResponseCallback;
+import it.niedermann.nextcloud.deck.api.ResponseCallback;
 import it.niedermann.nextcloud.deck.model.AccessControl;
 import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.model.User;
@@ -14,47 +16,45 @@ import it.niedermann.nextcloud.deck.model.ocs.user.GroupMemberUIDs;
 import it.niedermann.nextcloud.deck.model.ocs.user.OcsUser;
 import it.niedermann.nextcloud.deck.persistence.sync.adapters.ServerAdapter;
 import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.DataBaseAdapter;
+import it.niedermann.nextcloud.deck.persistence.sync.helpers.util.AsyncUtil;
 
 public class AccessControlDataProvider extends AbstractSyncDataProvider<AccessControl> {
 
     private static final Long TYPE_GROUP = 1L;
-    private List<AccessControl> acl;
-    private FullBoard board;
+    private final List<AccessControl> acl;
+    private final FullBoard board;
 
-    public AccessControlDataProvider(AbstractSyncDataProvider<?> parent, FullBoard board, List<AccessControl> acl) {
+    public AccessControlDataProvider(@Nullable AbstractSyncDataProvider<?> parent, FullBoard board, List<AccessControl> acl) {
         super(parent);
         this.board = board;
         this.acl = acl;
     }
 
     @Override
-    public void getAllFromServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<List<AccessControl>> responder, Date lastSync) {
-        CountDownLatch latch = new CountDownLatch(acl.size());
-        for (AccessControl accessControl : acl) {
-            if (accessControl.getType() == TYPE_GROUP) {
-                serverAdapter.searchGroupMembers(accessControl.getUser().getUid(), new IResponseCallback<GroupMemberUIDs>(responder.getAccount()) {
-                    @Override
-                    public void onResponse(GroupMemberUIDs response) {
-                        accessControl.setGroupMemberUIDs(response);
-                        if (response.getUids().size() > 0) {
-                            ensureGroupMembersInDB(getAccount(), dataBaseAdapter, serverAdapter, response);
+    public void getAllFromServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<List<AccessControl>> responder, Instant lastSync) {
+        AsyncUtil.awaitAsyncWork(acl.size(), latch -> {
+            for (AccessControl accessControl : acl) {
+                if (TYPE_GROUP.equals(accessControl.getType())) {
+                    serverAdapter.searchGroupMembers(accessControl.getUser().getUid(), new ResponseCallback<>(responder.getAccount()) {
+                        @Override
+                        public void onResponse(GroupMemberUIDs response) {
+                            accessControl.setGroupMemberUIDs(response);
+                            if (response.getUids().size() > 0) {
+                                ensureGroupMembersInDB(getAccount(), dataBaseAdapter, serverAdapter, response);
+                            }
+                            latch.countDown();
                         }
-                        latch.countDown();
-                    }
 
-                    @Override
-                    public void onError(Throwable throwable) {
-                        super.onError(throwable);
-                        latch.countDown();
-                    }
-                });
-            } else latch.countDown();
-        }
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            DeckLog.logError(e);
-        }
+                        @Override
+                        public void onError(Throwable throwable) {
+                            super.onError(throwable);
+                            latch.countDown();
+                        }
+                    });
+                } else latch.countDown();
+            }
+        });
+
         responder.onResponse(acl);
     }
 
@@ -64,10 +64,10 @@ public class AccessControlDataProvider extends AbstractSyncDataProvider<AccessCo
             User user = dataBaseAdapter.getUserByUidDirectly(account.getId(), uid);
             if (user == null) {
                 // unknown user. fetch!
-                serverAdapter.getSingleUserData(uid, new IResponseCallback<OcsUser>(account) {
+                serverAdapter.getSingleUserData(uid, new ResponseCallback<>(account) {
                     @Override
                     public void onResponse(OcsUser response) {
-                        DeckLog.log(response.toString());
+                        DeckLog.log(response);
                         User user = new User();
                         user.setUid(response.getId());
                         user.setPrimaryKey(response.getId());
@@ -106,7 +106,7 @@ public class AccessControlDataProvider extends AbstractSyncDataProvider<AccessCo
     }
 
     private void handleGroupMemberships(DataBaseAdapter dataBaseAdapter, AccessControl entity) {
-        if (entity.getType() != TYPE_GROUP) {
+        if (!TYPE_GROUP.equals(entity.getType())) {
             return;
         }
         dataBaseAdapter.deleteGroupMembershipsOfGroup(entity.getUser().getLocalId());
@@ -137,6 +137,7 @@ public class AccessControlDataProvider extends AbstractSyncDataProvider<AccessCo
     @Override
     public void updateInDB(DataBaseAdapter dataBaseAdapter, long accountId, AccessControl entity, boolean setStatus) {
         prepareUser(dataBaseAdapter, accountId, entity);
+        entity.setBoardId(board.getLocalId());
         dataBaseAdapter.updateAccessControl(entity, setStatus);
         handleGroupMemberships(dataBaseAdapter, entity);
     }
@@ -147,14 +148,17 @@ public class AccessControlDataProvider extends AbstractSyncDataProvider<AccessCo
     }
 
     @Override
-    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<AccessControl> responder, AccessControl entity) {
+    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<AccessControl> responder, AccessControl entity) {
         AccessControl acl = new AccessControl(entity);
         acl.setBoardId(board.getBoard().getId());
+        if (acl.getUser() == null && acl.getUserId() != null) {
+            acl.setUser(dataBaseAdapter.getUserByLocalIdDirectly(acl.getUserId()));
+        }
         serverAdapter.createAccessControl(board.getBoard().getId(), acl, responder);
     }
 
     @Override
-    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<AccessControl> callback, AccessControl entity) {
+    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<AccessControl> callback, AccessControl entity) {
         serverAdapter.updateAccessControl(board.getBoard().getId(), entity, callback);
     }
 
@@ -170,12 +174,12 @@ public class AccessControlDataProvider extends AbstractSyncDataProvider<AccessCo
     }
 
     @Override
-    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<Void> callback, AccessControl entity, DataBaseAdapter dataBaseAdapter) {
+    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<Void> callback, AccessControl entity, DataBaseAdapter dataBaseAdapter) {
         serverAdapter.deleteAccessControl(board.getBoard().getId(), entity, callback);
     }
 
     @Override
-    public List<AccessControl> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Date lastSync) {
+    public List<AccessControl> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Instant lastSync) {
         return dataBaseAdapter.getLocallyChangedAccessControl(accountId, board.getLocalId());
     }
 }

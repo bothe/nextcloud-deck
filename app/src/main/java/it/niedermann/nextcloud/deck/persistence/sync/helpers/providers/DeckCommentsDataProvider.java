@@ -1,12 +1,13 @@
 package it.niedermann.nextcloud.deck.persistence.sync.helpers.providers;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
+import java.util.Comparator;
 import java.util.List;
 
 import it.niedermann.nextcloud.deck.DeckLog;
-import it.niedermann.nextcloud.deck.api.IResponseCallback;
+import it.niedermann.nextcloud.deck.api.ResponseCallback;
 import it.niedermann.nextcloud.deck.model.Card;
 import it.niedermann.nextcloud.deck.model.ocs.comment.DeckComment;
 import it.niedermann.nextcloud.deck.model.ocs.comment.Mention;
@@ -24,15 +25,15 @@ public class DeckCommentsDataProvider extends AbstractSyncDataProvider<OcsCommen
     }
 
     @Override
-    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<List<OcsComment>> responder, Date lastSync) {
-        serverAdapter.getCommentsForRemoteCardId(card.getId(), new IResponseCallback<OcsComment>(responder.getAccount()) {
+    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<List<OcsComment>> responder, Instant lastSync) {
+        serverAdapter.getCommentsForRemoteCardId(card.getId(), new ResponseCallback<>(responder.getAccount()) {
             @Override
             public void onResponse(OcsComment response) {
                 if (response == null) {
                     response = new OcsComment();
                 }
                 List<OcsComment> comments = response.split();
-                Collections.sort(comments, (o1, o2) -> o1.getSingle().getCreationDateTime().compareTo(o2.getSingle().getCreationDateTime()));
+                Collections.sort(comments, Comparator.comparing(o -> o.getSingle().getCreationDateTime()));
                 verifyCommentListIntegrity(comments);
                 responder.onResponse(comments);
             }
@@ -107,7 +108,7 @@ public class DeckCommentsDataProvider extends AbstractSyncDataProvider<OcsCommen
     }
 
     @Override
-    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<OcsComment> responder, OcsComment entity) {
+    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<OcsComment> responder, OcsComment entity) {
         DeckComment comment = entity.getSingle();
         comment.setObjectId(card.getId());
         if (comment.getParentId() != null) {
@@ -117,7 +118,7 @@ public class DeckCommentsDataProvider extends AbstractSyncDataProvider<OcsCommen
     }
 
     @Override
-    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<OcsComment> callback, OcsComment entity) {
+    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<OcsComment> callback, OcsComment entity) {
         DeckComment comment = entity.getSingle();
         comment.setObjectId(card.getId());
         if (comment.getParentId() != null) {
@@ -127,14 +128,14 @@ public class DeckCommentsDataProvider extends AbstractSyncDataProvider<OcsCommen
     }
 
     @Override
-    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<Void> callback, OcsComment entity, DataBaseAdapter dataBaseAdapter) {
+    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<Void> callback, OcsComment entity, DataBaseAdapter dataBaseAdapter) {
         DeckComment comment = entity.getSingle();
         comment.setObjectId(card.getId());
         serverAdapter.deleteCommentForCard(comment, callback);
     }
 
     @Override
-    public List<OcsComment> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Date lastSync) {
+    public List<OcsComment> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Instant lastSync) {
         return new OcsComment(dataBaseAdapter.getLocallyChangedCommentsByLocalCardIdDirectly(accountId, card.getLocalId())).split();
     }
 

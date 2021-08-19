@@ -1,11 +1,11 @@
 package it.niedermann.nextcloud.deck.ui.card;
 
-import android.content.Context;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.CallSuper;
@@ -17,11 +17,14 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.card.MaterialCardView;
 
 import org.jetbrains.annotations.Contract;
 
+import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.model.Account;
@@ -29,7 +32,9 @@ import it.niedermann.nextcloud.deck.model.Card;
 import it.niedermann.nextcloud.deck.model.User;
 import it.niedermann.nextcloud.deck.model.enums.DBStatus;
 import it.niedermann.nextcloud.deck.model.full.FullCard;
+import it.niedermann.nextcloud.deck.util.AttachmentUtil;
 import it.niedermann.nextcloud.deck.util.DateUtil;
+import it.niedermann.nextcloud.deck.util.MimeTypeUtil;
 import it.niedermann.nextcloud.deck.util.ViewUtil;
 
 public abstract class AbstractCardViewHolder extends RecyclerView.ViewHolder {
@@ -43,7 +48,7 @@ public abstract class AbstractCardViewHolder extends RecyclerView.ViewHolder {
      */
     @CallSuper
     public void bind(@NonNull FullCard fullCard, @NonNull Account account, @Nullable Long boardRemoteId, boolean hasEditPermission, @MenuRes int optionsMenu, @NonNull CardOptionsItemSelectedListener optionsItemsSelectedListener, @NonNull String counterMaxValue, @ColorInt int mainColor) {
-        final Context context = itemView.getContext();
+        final var context = itemView.getContext();
 
         bindCardClickListener(null);
         bindCardLongClickListener(null);
@@ -62,9 +67,9 @@ public abstract class AbstractCardViewHolder extends RecyclerView.ViewHolder {
         }
 
         getCardMenu().setOnClickListener(view -> {
-            final PopupMenu popup = new PopupMenu(context, view);
+            final var popup = new PopupMenu(context, view);
             popup.inflate(optionsMenu);
-            final Menu menu = popup.getMenu();
+            final var menu = popup.getMenu();
             if (containsUser(fullCard.getAssignedUsers(), account.getUserName())) {
                 menu.removeItem(menu.findItem(R.id.action_card_assign).getItemId());
             } else {
@@ -102,15 +107,47 @@ public abstract class AbstractCardViewHolder extends RecyclerView.ViewHolder {
     }
 
     private static void setupDueDate(@NonNull TextView cardDueDate, @NonNull Card card) {
-        final Context context = cardDueDate.getContext();
-        cardDueDate.setText(DateUtil.getRelativeDateTimeString(context, card.getDueDate().getTime()));
-        ViewUtil.themeDueDate(context, cardDueDate, card.getDueDate());
+        final var context = cardDueDate.getContext();
+        cardDueDate.setText(DateUtil.getRelativeDateTimeString(context, card.getDueDate().toEpochMilli()));
+        ViewUtil.themeDueDate(context, cardDueDate, card.getDueDate().atZone(ZoneId.systemDefault()).toLocalDate());
+    }
+
+    protected static void setupCoverImages(@NonNull Account account, @NonNull ViewGroup coverImagesHolder, @NonNull FullCard fullCard, int maxCoverImagesCount) {
+        coverImagesHolder.removeAllViews();
+        if (maxCoverImagesCount > 0) {
+            final var coverImages = fullCard.getAttachments()
+                    .stream()
+                    .filter(attachment -> MimeTypeUtil.isImage(attachment.getMimetype()))
+                    .limit(maxCoverImagesCount)
+                    .collect(Collectors.toList());
+            if (coverImages.size() > 0) {
+                coverImagesHolder.setVisibility(View.VISIBLE);
+                coverImagesHolder.post(() -> {
+                    for (final var coverImage : coverImages) {
+                        final var coverImageView = new ImageView(coverImagesHolder.getContext());
+                        final int coverWidth = coverImagesHolder.getWidth() / coverImages.size();
+                        final int coverHeight = coverImagesHolder.getHeight();
+                        coverImageView.setLayoutParams(new LinearLayout.LayoutParams(coverWidth, coverHeight));
+                        coverImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        coverImagesHolder.addView(coverImageView);
+                        Glide.with(coverImageView)
+                                .load(AttachmentUtil.getThumbnailUrl(account, fullCard.getId(), coverImage, coverWidth, coverHeight))
+                                .placeholder(R.color.bg_info_box)
+                                .into(coverImageView);
+                    }
+                });
+            } else {
+                coverImagesHolder.setVisibility(View.GONE);
+            }
+        } else {
+            coverImagesHolder.setVisibility(View.GONE);
+        }
     }
 
     @Contract("null, _ -> false")
     private static boolean containsUser(List<User> userList, String username) {
         if (userList != null) {
-            for (User user : userList) {
+            for (final var user : userList) {
                 if (user.getPrimaryKey().equals(username)) {
                     return true;
                 }

@@ -11,10 +11,9 @@ import androidx.fragment.app.DialogFragment;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.DialogTextColorInputBinding;
 import it.niedermann.nextcloud.deck.model.Label;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
 
-import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditText;
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditTextInputLayout;
 
 public class EditLabelDialogFragment extends BrandedDialogFragment {
 
@@ -54,18 +53,18 @@ public class EditLabelDialogFragment extends BrandedDialogFragment {
         super.onCreate(savedInstanceState);
         binding = DialogTextColorInputBinding.inflate(requireActivity().getLayoutInflater());
 
-        AlertDialog.Builder dialogBuilder = new BrandedAlertDialogBuilder(requireContext());
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
 
         dialogBuilder.setTitle(getString(R.string.edit_tag, label.getTitle()));
         dialogBuilder.setPositiveButton(R.string.simple_save, (dialog, which) -> {
-            this.label.setColor(binding.colorChooser.getSelectedColor().substring(1));
+            this.label.setColor(binding.colorChooser.getSelectedColor());
             this.label.setTitle(binding.input.getText().toString());
             listener.onLabelUpdated(this.label);
         });
         String title = this.label.getTitle();
         binding.input.setText(title);
         binding.input.setSelection(title.length());
-        binding.colorChooser.selectColor("#" + this.label.getColor());
+        binding.colorChooser.selectColor(this.label.getColor());
 
         return dialogBuilder
                 .setView(binding.getRoot())
@@ -85,6 +84,6 @@ public class EditLabelDialogFragment extends BrandedDialogFragment {
 
     @Override
     public void applyBrand(int mainColor) {
-        applyBrandToEditText(mainColor, binding.input);
+        applyBrandToEditTextInputLayout(mainColor, binding.inputWrapper);
     }
 }

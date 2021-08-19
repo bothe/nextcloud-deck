@@ -1,5 +1,8 @@
 package it.niedermann.nextcloud.deck.ui.sharetarget;
 
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static it.niedermann.nextcloud.deck.util.FilesUtil.copyContentUriToTempFile;
+
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
@@ -11,34 +14,29 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.nextcloud.android.sso.exceptions.NextcloudHttpRequestFailedException;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
+import it.niedermann.nextcloud.deck.api.IResponseCallback;
 import it.niedermann.nextcloud.deck.exceptions.UploadAttachmentFailedException;
-import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.model.Attachment;
 import it.niedermann.nextcloud.deck.model.Board;
 import it.niedermann.nextcloud.deck.model.full.FullCard;
 import it.niedermann.nextcloud.deck.model.ocs.comment.DeckComment;
-import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.WrappedLiveData;
 import it.niedermann.nextcloud.deck.ui.MainActivity;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
 import it.niedermann.nextcloud.deck.ui.card.SelectCardListener;
 import it.niedermann.nextcloud.deck.ui.exception.ExceptionDialogFragment;
 import it.niedermann.nextcloud.deck.util.MimeTypeUtil;
-
-import static it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.LiveDataHelper.observeOnce;
-import static it.niedermann.nextcloud.deck.util.AttachmentUtil.copyContentUriToTempFile;
-import static java.net.HttpURLConnection.HTTP_CONFLICT;
 
 public class ShareTargetActivity extends MainActivity implements SelectCardListener {
 
@@ -68,7 +66,7 @@ public class ShareTargetActivity extends MainActivity implements SelectCardListe
                         mStreamsToUpload.addAll(listOfParcelables);
                     }
                 } else {
-                    new BrandedAlertDialogBuilder(this)
+                    new AlertDialog.Builder(this)
                             .setTitle(R.string.error)
                             .setMessage(R.string.operation_not_yet_supported)
                             .setPositiveButton(R.string.simple_close, (a, b) -> finish())
@@ -103,7 +101,7 @@ public class ShareTargetActivity extends MainActivity implements SelectCardListe
 
     private void appendFilesAndFinish(@NonNull FullCard fullCard) {
         ShareProgressDialogFragment.newInstance().show(getSupportFragmentManager(), ShareProgressDialogFragment.class.getSimpleName());
-        final ShareProgressViewModel shareProgressViewModel = new ViewModelProvider(this).get(ShareProgressViewModel.class);
+        final var shareProgressViewModel = new ViewModelProvider(this).get(ShareProgressViewModel.class);
         shareProgressViewModel.setMax(mStreamsToUpload.size());
         shareProgressViewModel.targetCardTitle = fullCard.getCard().getTitle();
 
@@ -125,19 +123,23 @@ public class ShareTargetActivity extends MainActivity implements SelectCardListe
                     if (mimeType == null) {
                         throw new IllegalArgumentException("MimeType of uri is null. [" + uri + "]");
                     }
-                    runOnUiThread(() -> {
-                        final WrappedLiveData<Attachment> liveData = syncManager.addAttachmentToCard(fullCard.getAccountId(), fullCard.getCard().getLocalId(), mimeType, tempFile);
-                        liveData.observe(ShareTargetActivity.this, (next) -> {
-                            if (liveData.hasError()) {
-                                if (liveData.getError() instanceof NextcloudHttpRequestFailedException && ((NextcloudHttpRequestFailedException) liveData.getError()).getStatusCode() == HTTP_CONFLICT) {
+                    mainViewModel.addAttachmentToCard(fullCard.getAccountId(), fullCard.getCard().getLocalId(), mimeType, tempFile, new IResponseCallback<>() {
+                        @Override
+                        public void onResponse(Attachment response) {
+                            runOnUiThread(shareProgressViewModel::increaseProgress);
+                        }
+
+                        @Override
+                        public void onError(Throwable throwable) {
+                            runOnUiThread(() -> {
+                                if (throwable instanceof NextcloudHttpRequestFailedException && ((NextcloudHttpRequestFailedException) throwable).getStatusCode() == HTTP_CONFLICT) {
+                                    IResponseCallback.super.onError(throwable);
                                     shareProgressViewModel.addDuplicateAttachment(tempFile.getName());
                                 } else {
-                                    shareProgressViewModel.addException(liveData.getError());
+                                    shareProgressViewModel.addException(throwable);
                                 }
-                            } else {
-                                shareProgressViewModel.increaseProgress();
-                            }
-                        });
+                            });
+                        }
                     });
                 } catch (Throwable t) {
                     runOnUiThread(() -> shareProgressViewModel.addException(new UploadAttachmentFailedException("Error while uploading attachment for uri [" + uri + "]", t)));
@@ -147,34 +149,40 @@ public class ShareTargetActivity extends MainActivity implements SelectCardListe
     }
 
     private void appendTextAndFinish(@NonNull FullCard fullCard, @NonNull String receivedText) {
-        final String[] animals = {getString(R.string.append_text_to_description), getString(R.string.add_text_as_comment)};
-        new BrandedAlertDialogBuilder(this)
+        final String[] targets = {getString(R.string.append_text_to_description), getString(R.string.add_text_as_comment)};
+        new AlertDialog.Builder(this)
                 .setOnCancelListener(dialog -> cardSelected = false)
-                .setItems(animals, (dialog, which) -> {
+                .setItems(targets, (dialog, which) -> {
                     switch (which) {
                         case 0:
                             final String oldDescription = fullCard.getCard().getDescription();
-                            DeckLog.info("Adding to card #" + fullCard.getCard().getId() + " (" + fullCard.getCard().getTitle() + "): Text \"" + receivedText + "\"");
+                            DeckLog.info("Adding to card with id", fullCard.getCard().getId(), "(" + fullCard.getCard().getTitle() + "):", receivedText);
                             fullCard.getCard().setDescription(
                                     (oldDescription == null || oldDescription.length() == 0)
                                             ? receivedText
                                             : oldDescription + "\n\n" + receivedText
                             );
-                            WrappedLiveData<FullCard> liveData = syncManager.updateCard(fullCard);
-                            observeOnce(liveData, this, (next) -> {
-                                if (liveData.hasError()) {
-                                    cardSelected = false;
-                                    ExceptionDialogFragment.newInstance(liveData.getError(), mainViewModel.getCurrentAccount()).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName());
-                                } else {
+                            mainViewModel.updateCard(fullCard, new IResponseCallback<>() {
+                                @Override
+                                public void onResponse(FullCard response) {
                                     Toast.makeText(getApplicationContext(), getString(R.string.share_success, "\"" + receivedText + "\"", "\"" + fullCard.getCard().getTitle() + "\""), Toast.LENGTH_LONG).show();
-                                    finish();
+                                    runOnUiThread(() -> finish());
+                                }
+
+                                @Override
+                                public void onError(Throwable throwable) {
+                                    IResponseCallback.super.onError(throwable);
+                                    runOnUiThread(() -> {
+                                        cardSelected = false;
+                                        ExceptionDialogFragment.newInstance(throwable, mainViewModel.getCurrentAccount()).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName());
+                                    });
                                 }
                             });
                             break;
                         case 1:
-                            final Account currentAccount = mainViewModel.getCurrentAccount();
-                            final DeckComment comment = new DeckComment(receivedText.trim(), currentAccount.getUserName(), new Date());
-                            syncManager.addCommentToCard(currentAccount.getId(), fullCard.getLocalId(), comment);
+                            final var currentAccount = mainViewModel.getCurrentAccount();
+                            final var comment = new DeckComment(receivedText.trim(), currentAccount.getUserName(), Instant.now());
+                            mainViewModel.addCommentToCard(currentAccount.getId(), fullCard.getLocalId(), comment);
                             Toast.makeText(getApplicationContext(), getString(R.string.share_success, "\"" + receivedText + "\"", "\"" + fullCard.getCard().getTitle() + "\""), Toast.LENGTH_LONG).show();
                             finish();
                             break;

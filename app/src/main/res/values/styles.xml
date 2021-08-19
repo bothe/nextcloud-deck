@@ -6,10 +6,30 @@
         <item name="colorAccent">@color/accent</item>
         <item name="toolbarStyle">@style/toolbarStyle</item>
         <item name="android:windowBackground">?attr/colorPrimary</item>
+        <item name="textAppearanceHeadline1">@style/Deck.TextAppearance.Headline1</item>
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
+        <item name="android:colorControlNormal">?attr/colorAccent</item>
+        <item name="android:colorControlActivated">?attr/colorAccent</item>
+    </style>
+
+    <style name="AppBottomSheetDialogTheme" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/AppModalStyle</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:navigationBarColor">@color/primary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="AppModalStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bottom_sheet_rounded</item>
     </style>
 
     <style name="toolbarStyle" parent="@style/Widget.AppCompat.Toolbar">
         <item name="android:background">?attr/colorPrimary</item>
+    </style>
+
+    <style name="TextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+        <item name="boxStrokeColor">@color/text_input_layout_color</item>
+        <item name="hintTextColor">@color/text_input_layout_color</item>
     </style>
 
     <!-- Default is a light theme with the dark blue brand -->
@@ -24,6 +44,7 @@
         <!-- https://github.com/stefan-niedermann/nextcloud-deck/issues/444 -->
         <item name="android:ellipsize">end</item>
         <item name="android:listDivider">@null</item>
+        <item name="android:colorControlHighlight">@android:color/transparent</item>
     </style>
 
     <style name="TransparentTheme" parent="Theme.AppCompat.NoActionBar">
@@ -31,5 +52,14 @@
         <item name="android:windowBackground">@android:color/background_dark</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
         <item name="android:windowIsTranslucent">true</item>
+    </style>
+
+    <style name="TakePhotoTheme" parent="TransparentTheme">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="Deck.TextAppearance.Headline1" parent="TextAppearance.MaterialComponents.Headline1">
+        <item name="android:textSize">36sp</item>
     </style>
 </resources>

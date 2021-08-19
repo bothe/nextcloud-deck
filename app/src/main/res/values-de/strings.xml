@@ -1,14 +1,8 @@
 <resources>
     <string name="navigation_drawer_open">Navigationsleiste öffnen</string>
     <string name="navigation_drawer_close">Navigationsleiste schließen</string>
+    <string name="hint_search_deck">Deck durchsuchen</string>
 
-    <string name="drawer_header_background">Hintergrundbild des Kopfbereiches</string>
-    <string name="drawer_current_account">Aktuelles Konto</string>
-    <string name="drawer_middle_account">Mittleres Konto</string>
-    <string name="drawer_end_account">Letztes Konto</string>
-    <string name="drawer_manage_accounts">Konten verwalten</string>
-
-    <!-- Simple values -->
     <string name="simple_boards">Boards</string>
     <string name="simple_add">Hinzufügen</string>
     <string name="simple_save">Speichern</string>
@@ -39,13 +33,13 @@
     <string name="simple_copied">Kopiert</string>
     <string name="simple_archive">Archivieren</string>
     <string name="simple_unassigned">Nicht zugewiesen</string>
+    <string name="hint_error_appeared">Es ist ein Fehler aufgetreten</string>
 
     <string name="edit_board">Board bearbeiten</string>
     <string name="archive_board">Board archivieren</string>
     <string name="delete_board">Board löschen</string>
     <string name="delete_something">Lösche %1$s</string>
 
-    <!-- About -->
     <string name="about">Über</string>
     <string name="about_version_title">Version</string>
     <string name="about_version">Sie benutzen aktuell %1$s</string>
@@ -58,7 +52,7 @@
     <string name="about_source_title">Quellcode</string>
     <string name="about_source">Dieses Projekt wird auf GitHub gehostet: %1$s</string>
     <string name="about_issues_title">Probleme</string>
-    <string name="about_issues">Sie können Fehler, Verbesserungsvorschläge oder Wünsche für neue Funktionen im GitHub-Ticket-System erfassen: %1$s</string>
+    <string name="about_issues">Sie können Fehler, Verbesserungsvorschläge oder Wünsche für neue Funktionen als Issue auf GitHub erfassen: %1$s</string>
     <string name="about_translate_title">Übersetzen</string>
     <string name="about_translate">Treten Sie dem Nextcloud-Team bei Transifex bei und helfen Sie uns, diese App zu übersetzen: %1$s</string>
     <string name="about_app_license_title">App-Lizenz</string>
@@ -71,9 +65,6 @@
     <string name="about_credits_tab_title">Credits</string>
     <string name="about_contribution_tab_title">Beitrag</string>
     <string name="about_license_tab_title">Lizenz</string>
-
-    <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
-
     <string name="seconds_ago">Gerade eben</string>
     <string name="edit">Bearbeiten</string>
     <string name="label_labels">Schlagworte auswählen</string>
@@ -104,16 +95,17 @@
     <string name="card_edit_attachments">Anhänge</string>
     <string name="card_edit_activity">Aktivitäten</string>
     <string name="about_server_app_version_text">Serverversion der App:</string>
-    <string name="no_files_attached_to_this_card">An diese Karte sind keine Dateien angehängt.</string>
+    <string name="no_files_attached_to_this_card">Dieser Karte sind keine Dateien angehängt.</string>
     <string name="attachments">Anhänge</string>
     <string name="no_cards">Bislang keine Karten</string>
-    <string name="no_account">Kein Konto konfiguriert</string>
+    <string name="no_account">Kein Konto eingerichtet</string>
     <string name="account_already_added">Konto wurde bereits hinzugefügt</string>
     <string name="account_is_getting_imported">Konto wird importiert</string>
     <string name="not_synced_yet">Noch nicht synchronisiert</string>
     <string name="no_lists_yet">Noch keine Listen vorhanden</string>
     <string name="do_you_want_to_save_your_changes">Möchten Sie Ihre Änderungen speichern?</string>
     <string name="do_you_want_to_archive_all_cards_of_the_list">Möchten Sie alle Karten von %1$s archivieren?</string>
+    <string name="do_you_want_to_archive_all_cards_of_the_filtered_list">Möchten Sie alle gefilterten Karten von %1$s archivieren?</string>
     <plurals name="do_you_want_to_delete_the_current_list">
         <item quantity="one">Dies wird %1$d Karte permanent aus dieser Liste löschen.</item>
         <item quantity="other">Dies wird %1$d Karten permanent aus dieser Liste löschen.</item>
@@ -124,17 +116,27 @@
     </plurals>
     <string name="add_a_new_list_using_the_button">Eine neue Liste mit der + Taste hinzufügen</string>
     <string name="add_a_new_card_using_the_button">Eine neue Karte mit der + Taste hinzufügen</string>
-    <string name="update_deck">Deck aktualisieren</string>
-    <string name="your_deck_version_is_too_old">Ihre Deck-Version ist zu alt</string>
-    <string name="deck_outdated_please_update">Ihre Deck-Version ist zu alt (%1$s). Bitte aktualisieren Sie Deck um diese Android-App als Client verwenden zu können.</string>
+    <string name="update_deck">Deck Web-App aktualisieren</string>
+    <string name="deck_outdated_please_update">Ihre Deck Web-App-Version ist zu alt (%1$s). Bitte aktualisieren Sie, um diese Android-App als Client zu verwenden.</string>
     <string name="delete_board_message">Dies wird dieses Board endgültig inklusive aller Listen und Karten löschen.</string>
-    <string name="settings_theme_title">Dunkles Design</string>
+    <string name="settings_theme_title">Design</string>
     <string name="settings_branding_title">Branding</string>
     <string name="settings_compact_title">Kompakt-Modus</string>
+    <string name="settings_cover_images_title">Coverbilder</string>
+    <string name="settings_debugging">Protokolldateien zur Fehlersuche</string>
+    <string name="settings_etags">ETags verwenden</string>
+    <string name="settings_etags_summary">Beschleunigt die Synchronisation</string>
     <string name="settings_background_sync">Hintergrundsynchronisierung</string>
+    <string name="settings_compress_image_attachments">Bilder vor dem Hochladen komprimieren</string>
+    <string name="search_in">Suche in %1$s</string>
+    <string name="settings_compress_image_attachments_summary">Schnelleres hochladen, weniger Qualität</string>
     <string name="pref_value_wifi_and_mobile">Über WLAN und mobile Daten synchronisieren</string>
     <string name="pref_value_wifi_only">Nur über WLAN synchronisieren</string>
-    <string name="pref_value_theme_light">Hell</string>
+    <string-array name="darkmode_entries">
+        <item>Systemstandard</item>
+        <item>Hell</item>
+        <item>Dunkel</item>
+    </string-array>
     <string name="unassigned_user">Zuordnung von %1$s entfernt</string>
     <string name="no_activities">Auf dieser Karte sind keine Aktivitäten vorhanden. Sie müssen mit dem Internet verbunden sein, um Aktivitäten zu laden und anzuzeigen.</string>
     <string name="share_board">Board freigeben</string>
@@ -150,15 +152,12 @@
     <string name="hours_6">6 Stunden</string>
     <string name="action_card_move">Karte verschieben</string>
     <string name="action_card_move_title">Verschiebe %1$s</string>
-    <string name="please_add_an_account_first">Bitte zuerst ein Konto hinzufügen</string>
-    <string name="title_is_mandatory">Titel ist obligatorisch</string>
+    <string name="title_is_mandatory">Titel ist erforderlich</string>
     <string name="provide_at_least_a_title_or_description">Mindestens einen Titel oder eine Beschreibung eingeben</string>
     <string name="welcome_text">Willkommen bei %1$s</string>
-    <string name="save_card_before_attachment">Die Karte muss gespeichert werden bevor Anhänge hinzugefügt werden können.</string>
     <string name="maintenance_mode_explanation">Der Server %1$s ist momentan im Wartungsmodus. Bitte nehmen Sie Kontakt mit Ihrem Administrator auf oder versuchen Sie es später nochmal!</string>
     <string name="share_add_to_card">Zur Karte hinzufügen</string>
     <string name="share_success">%1$s erfolgreich zu %2$s hinzugefügt</string>
-    <string name="could_not_copy_to_clipboard">Konnte nicht in die Zwischenablage kopieren</string>
     <string name="add_comment">Kommentar hinzufügen</string>
     <string name="card_edit_comments">Kommentare</string>
     <string name="no_comments_yet">Noch keine Kommentare vorhanden</string>
@@ -170,22 +169,21 @@
     <string name="open_in_browser">Im Browser öffnen</string>
     <string name="updating_card">Karte wird aktualisiert…</string>
 
-    <!-- Move lists -->
     <string name="move_list_right">Liste nach rechts schieben</string>
     <string name="move_list_left">Liste nach links schieben</string>
 
-    <!-- Filter -->
     <string name="filter_no_filter">Alle</string>
     <string name="filter_overdue">Überfällig</string>
     <string name="filter_today">Heute</string>
+    <string name="filter_tomorrow">Morgen</string>
     <string name="filter_week">Die nächsten 7 Tage</string>
     <string name="filter_month">Die nächsten 30 Tage</string>
     <string name="filter_no_due">Kein Fälligkeitsdatum</string>
+    <string name="filter_later">Später</string>
     <string name="filter_by_tag">Nach Schlagwort filtern</string>
     <string name="filter_by_assigned_user">Nach zugewiesenem Benutzer filtern</string>
     <string name="filter_by_duedate">Nach Fälligkeitsdatum filtern</string>
 
-    <!-- Archived cards -->
     <string name="archived_cards">Archivierte Karten</string>
     <string name="action_card_dearchive">Karte archivieren rückgängig machen</string>
     <string name="action_archived_cards">Archivierte Karten durchsuchen</string>
@@ -200,20 +198,16 @@
     <string name="filter_user_title">Benutzer</string>
     <string name="filter_duedate_title">Fälligkeitsdatum</string>
 
-    <!-- Archived boards -->
     <string name="action_board_dearchive">Board archivieren rückgängig machen</string>
     <string name="archived_boards">Archivierte Boards</string>
 
-    <!-- Errors -->
     <string name="error">Es ist ein Fehler aufgetreten</string>
     <string name="synchronization_failed">Synchronisierung fehlgeschlagen</string>
     <string name="operation_not_yet_supported">Wird bislang noch nicht unterstützt</string>
     <string name="error_revoking_ac">Fehler beim Widerruf des Zugriffs für %1$s</string>
     <string name="error_create_label">Fehler beim Erstellen des Labels %1$s</string>
     <string name="maintenance_mode">Server befindet sich im Wartungsmodus</string>
-    <string name="server_misconfigured">Server falsch konfiguriert</string>
     <string name="server_error">Serverfehler</string>
-    <string name="shared_error">Das Teilen von Inhalten aus Apps von Drittanbietern wird noch nicht vollständig unterstützt. Bitte versuchen Sie zuerst, die Datei herunterzuladen und dann aus Ihrem Dateimanager oder aus Ihrer Galerie freizugeben.</string>
     <string name="error_edit_activity_killed_by_android">Android hat den Bearbeitungsmodus beendet, da mehr Systemressourcen für andere Apps benötigt wurden.</string>
 
     <string name="error_dialog_title">Oh nein - Was jetzt? 🙁</string>
@@ -222,6 +216,8 @@
     <string name="error_dialog_tip_database_upgrade_failed">Die Aktualisierung der Datenbank ist fehlgeschlagen. Bitte melden Sie das Problem und leeren Sie den Speicher, um die App normal zu verwenden.</string>
     <string name="error_dialog_tip_clear_storage">Sie können den Speicherinhalt leeren indem Sie die App öffnen und Speicher → Speicherinhalt löschen auswählen.</string>
     <string name="error_dialog_tip_files_outdated">Sie scheinen eine alte Version der Nextcloud-App installiert zu haben. Bitte besuchen Sie den Play Store oder F-Droid, um die neueste Version zu installieren.</string>
+    <string name="error_dialog_tip_offline">Es sieht so aus, als hätten Sie versucht, eine Synchronisation ohne Internetverbindung auszulösen.</string>
+    <string name="error_dialog_tip_sync_only_on_wifi">Wenn Sie die Einstellung \"Nur über WLAN synchronisieren\" aktiviert haben, können Sie nur synchronisieren, wenn Sie mit einem WLAN verbunden sind.</string>
     <string name="error_dialog_tip_files_force_stop">Etwas scheint bei der Nextcloud App nicht zu funktionieren. Bitte versuchen Sie sowohl die Nextcloud App als auch die Nextcloud Deck App zu stoppen.</string>
     <string name="error_dialog_tip_files_delete_storage">Wenn das erzwungene Stoppen nicht hilft, können Sie versuchen, den Speicher beider Apps zu leeren .</string>
     <string name="error_dialog_timeout_instance">Der Server reagierte nicht in der üblichen Zeit. Bitte stellen Sie sicher, dass Ihre Instanz einwandfrei läuft.</string>
@@ -237,21 +233,27 @@
     <string name="error_dialog_user_not_found_in_database">Der aktuelle Benutzer stimmt nicht mit dem Benutzer überein, den wir in unserer Datenbank haben. Wenn Sie LDAP in Ihrer Nextcloud-Instanz verwenden, hat Ihre Nextcloud-App möglicherweise eine alte Benutzer-ID gespeichert.</string>
     <string name="error_dialog_capabilities_not_parsable">Funktionsumfang Ihres Serves konnte nicht nicht abgerufen werden. Stellen Sie sicher, dass Ihr Server ordnungsgemäß funktioniert und Client-Apps auf Nextcloud zugreifen können.</string>
     <string name="error_dialog_attachment_upload_failed">Ein Anhang konnte nicht hochgeladen werden. Bitte versuchen Sie es auf andere Weise zu teilen und teilen Sie uns diesen Fehler mit.</string>
+    <string name="error_dialog_certificate">Mit dem Zertifikat des Servers scheint etwas nicht zu stimmen. Bitte überprüfen Sie alle Konten in der Nextcloud-App für weitere Informationen. </string>
     <string name="error_dialog_tip_disable_battery_optimizations">Bitte alle Batterieoptimierungen für Nextcloud und die Deck-App deaktivieren.</string>
+    <string name="error_dialog_unknown_error">Ihre Nextcloud-Instanz scheint nicht erreichbar zu sein. Bitte überprüfen Sie Ihre Internetverbindung und ob Sie sich über den Browser mit Ihrer Instanz verbinden können.</string>
     <string name="error_action_open_deck_info">App-Informationen öffnen</string>
+    <string name="error_action_open_nextcloud_app">Nextcloud-App öffnen</string>
     <string name="error_action_open_network">Netzwerkeinstellungen</string>
     <string name="error_action_server_logs">Server-Protokolle</string>
+    <string name="error_action_open_in_browser">Im Browser öffnen</string>
     <string name="error_action_install">Installieren</string>
     <string name="error_action_report_issue">Melden</string>
     <string name="info_box_maintenance_mode">Server befindet sich im Wartungsmodus</string>
     <string name="info_box_version_not_supported">Serverversion %1$s wird nicht unterstützt. Bitte aktualisiere auf %2$s.</string>
     <string name="share_link">Link teilen</string>
+    <string name="share_content">Inhalt teilen</string>
+    <string name="share_content_duedate">Fälligkeitsdatum: %1$s</string>
+    <string name="share_content_labels">Schlagworte: %1$s</string>
     <string name="archive_cards">Karten archivieren</string>
 
     <string name="manage_accounts">Konten verwalten</string>
     <string name="manage_list">Liste verwalten</string>
     <string name="simple_reply">Antworten</string>
-    <string name="error_while_uploading_attachment">Fehler beim Hochladen des Anhangs: %1$s</string>
     <string name="append_text_to_description">An Beschreibung anhängen</string>
     <string name="add_text_as_comment">Als Kommentar hinzufügen</string>
     <string name="progress_count">%1$d von %2$d</string>
@@ -269,8 +271,9 @@
     <string name="card_does_not_yet_exist">Karte existiert bislang nicht in Deck</string>
 
     <string name="widget_stack_title">Liste</string>
+    <string name="widget_filter_title">Filter</string>
     <string name="widget_stack_header_icon">Widget-Kopf-Icon</string>
-    <string name="widget_stack_placeholder_icon">Widget-Platzhalter-Symbol</string>
+    <string name="widget_placeholder_icon">Widget-Platzhalter-Symbol</string>
     <string name="select_stack">Liste auswählen</string>
     <string name="project_type_deck_board">Deck-Board</string>
     <string name="project_type_deck_card">Deck-Karte</string>
@@ -280,9 +283,44 @@
         <item quantity="one">%1$d Ressource</item>
         <item quantity="other">%1$d Ressourcen</item>
     </plurals>
-    <string name="no_assigned_label">Keine Schlagwort zugewiesen</string>
+    <string name="no_assigned_label">Kein Schlagwort zugewiesen</string>
     <string name="single_card">Einzelne Karte</string>
     <string name="project_type_room">Talk-Raum</string>
     <string name="simple_move">Verschieben</string>
-    <string name="cannot_upload_files_without_permission">Dateien können nicht ohne Berechtigung hochgeladen werden</string>
+    <string name="cannot_upload_files_without_permission">Dateien können ohne Berechtigung nicht hochgeladen werden</string>
+    <string name="clone_cards">Karten klonen</string>
+    <string name="simple_clone">Klonen</string>
+    <string name="user_avatar">Benutzer-Avatar</string>
+    <string name="simple_unassign">Zuordnung aufheben</string>
+    <string name="simple_contact">Kontakt</string>
+    <string name="simple_file">Datei</string>
+    <string name="simple_camera">Kamera</string>
+    <string name="take_photo">Foto aufnehmen</string>
+    <string name="take_photo_switch_camera">Kamera wechseln</string>
+    <string name="take_photo_toggle_torch">Taschenlampe umschalten</string>
+    <string name="show_all_contacts">Alle Kontakte anzeigen</string>
+    <string name="show_all_files">Alle Dateien anzeigen</string>
+    <string name="recent">Neueste</string>
+    <string name="upload_a_new_attachment">Neuen Anhang hochladen</string>
+    <string name="contacts">Kontakte</string>
+    <string name="downloads">Downloads</string>
+    <string name="files">Dateien</string>
+    <string name="gallery">Galerie</string>
+    <string name="simple_attach">anhängen</string>
+    <string name="add_stack_widget">Ein Listen-Widget hinzufügen</string>
+    <string name="add_filter_widget">Filter-Widget hinzufügen</string>
+    <string name="simple_order">Reihenfolge</string>
+    <string name="edit_description">Beschreibung bearbeiten</string>
+    <string name="widget_upcoming_title">Anstehende Karten</string>
+    <!-- Category header for a section in the settings which contain features for advanced users -->
+    <string name="simple_expert_settings">Experteneinstellungen</string>
+    <string name="copy_logs">Protokolldateien in die Zwischenablage kopieren</string>
+    <string name="app_logo">App-Logo</string>
+    <string name="log_file">Protokolldatei</string>
+    <string name="copying_logs_to_file">Protokolldateien in Datei kopieren…</string>
+    <string name="account_imported">Konto importiert</string>
+    <string name="simple_search">Suche</string>
+    <!-- Label for a title input field that is required to be filled out -->
+    <string name="title_mandatory">Titel (erforderlich)</string>
+    <string name="saving_new_card">Speichere neue Karte …</string>
 </resources>

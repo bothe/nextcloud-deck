@@ -3,24 +3,28 @@ package it.niedermann.nextcloud.deck.ui.board;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import java.util.Objects;
 
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.DialogTextColorInputBinding;
 import it.niedermann.nextcloud.deck.model.full.FullBoard;
-import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
 import it.niedermann.nextcloud.deck.ui.MainViewModel;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
 
-import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditText;
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditTextInputLayout;
 
-public class EditBoardDialogFragment extends BrandedDialogFragment {
+public class EditBoardDialogFragment extends DialogFragment {
 
     private DialogTextColorInputBinding binding;
 
@@ -46,57 +50,57 @@ public class EditBoardDialogFragment extends BrandedDialogFragment {
         super.onCreate(savedInstanceState);
         binding = DialogTextColorInputBinding.inflate(requireActivity().getLayoutInflater());
 
+        final AlertDialog.Builder builder = new AlertDialog.Builder(requireContext())
+                .setView(binding.getRoot())
+                .setNeutralButton(android.R.string.cancel, null);
+
         final Bundle args = getArguments();
-
-        AlertDialog.Builder dialogBuilder = new BrandedAlertDialogBuilder(requireContext());
-
         if (args != null && args.containsKey(KEY_BOARD_ID)) {
-            dialogBuilder.setTitle(R.string.edit_board);
-            dialogBuilder.setPositiveButton(R.string.simple_save, (dialog, which) -> {
-                this.fullBoard.board.setColor(binding.colorChooser.getSelectedColor().substring(1));
+            builder.setTitle(R.string.edit_board);
+            builder.setPositiveButton(R.string.simple_save, (dialog, which) -> {
+                this.fullBoard.board.setColor(binding.colorChooser.getSelectedColor());
                 this.fullBoard.board.setTitle(binding.input.getText().toString());
-                editBoardListener.onUpdateBoard(fullBoard);
+                this.editBoardListener.onUpdateBoard(fullBoard);
             });
             final MainViewModel viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-            new SyncManager(requireActivity()).getFullBoardById(viewModel.getCurrentAccount().getId(), args.getLong(KEY_BOARD_ID)).observe(EditBoardDialogFragment.this, (FullBoard fb) -> {
+            viewModel.getFullBoardById(viewModel.getCurrentAccount().getId(), args.getLong(KEY_BOARD_ID)).observe(EditBoardDialogFragment.this, (FullBoard fb) -> {
                 if (fb.board != null) {
                     this.fullBoard = fb;
                     String title = this.fullBoard.getBoard().getTitle();
                     binding.input.setText(title);
                     binding.input.setSelection(title.length());
-                    binding.colorChooser.selectColor("#" + fullBoard.getBoard().getColor());
+                    applyBrandToEditTextInputLayout(fb.getBoard().getColor(), binding.inputWrapper);
+                    binding.colorChooser.selectColor(fullBoard.getBoard().getColor());
                 }
             });
         } else {
-            dialogBuilder.setTitle(R.string.add_board);
-            dialogBuilder.setPositiveButton(R.string.simple_add, (dialog, which) -> editBoardListener.onCreateBoard(binding.input.getText().toString(), binding.colorChooser.getSelectedColor()));
-            binding.colorChooser.selectColor(String.format("#%06X", 0xFFFFFF & getResources().getColor(R.color.board_default_color)));
+            builder.setTitle(R.string.add_board);
+            builder.setPositiveButton(R.string.simple_add, (dialog, which) -> editBoardListener.onCreateBoard(binding.input.getText().toString(), binding.colorChooser.getSelectedColor()));
+            binding.colorChooser.selectColor(ContextCompat.getColor(requireContext(), R.color.board_default_color));
         }
 
-        return dialogBuilder
-                .setView(binding.getRoot())
-                .setNeutralButton(android.R.string.cancel, null)
-                .create();
+        return builder.create();
     }
 
-    public static DialogFragment newInstance(@Nullable Long boardId) {
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding.input.requestFocus();
+        Objects.requireNonNull(requireDialog().getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
+    public static DialogFragment newInstance(long boardId) {
         final DialogFragment dialog = new EditBoardDialogFragment();
 
-        if (boardId != null) {
-            Bundle args = new Bundle();
-            args.putLong(KEY_BOARD_ID, boardId);
-            dialog.setArguments(args);
-        }
+        final Bundle args = new Bundle();
+        args.putLong(KEY_BOARD_ID, boardId);
+        dialog.setArguments(args);
 
         return dialog;
     }
 
     public static DialogFragment newInstance() {
-        return newInstance(null);
-    }
-
-    @Override
-    public void applyBrand(int mainColor) {
-        applyBrandToEditText(mainColor, binding.input);
+        return new EditBoardDialogFragment();
     }
 }

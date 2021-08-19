@@ -2,7 +2,9 @@ package it.niedermann.nextcloud.deck.model;
 
 import android.net.Uri;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.Px;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -13,12 +15,12 @@ import androidx.room.PrimaryKey;
 import com.nextcloud.android.sso.model.SingleSignOnAccount;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.model.ocs.Capabilities;
 import it.niedermann.nextcloud.deck.model.ocs.Version;
 import it.niedermann.nextcloud.deck.ui.accountswitcher.AccountSwitcherDialog;
-import it.niedermann.nextcloud.deck.util.ColorUtil;
 
 @Entity(indices = {@Index(value = "name", unique = true)})
 public class Account implements Serializable {
@@ -34,16 +36,23 @@ public class Account implements Serializable {
     @NonNull
     private String userName;
 
+    @Ignore
+    @Nullable
+    private String userDisplayName;
+
     @NonNull
     private String url;
 
+    /**
+     * See {@link Capabilities#DEFAULT_COLOR}
+     */
     @NonNull
-    @ColumnInfo(defaultValue = "#0082c9")
-    private String color = "#0082c9";
+    @ColumnInfo(defaultValue = "0")
+    private Integer color = Capabilities.DEFAULT_COLOR;
 
     @NonNull
-    @ColumnInfo(defaultValue = "#ffffff")
-    private String textColor = "#ffffff";
+    @ColumnInfo(defaultValue = "0")
+    private Integer textColor = Capabilities.DEFAULT_TEXT_COLOR;
 
     @NonNull
     @ColumnInfo(defaultValue = "0.6.4")
@@ -54,6 +63,7 @@ public class Account implements Serializable {
     private boolean maintenanceEnabled = false;
 
     private String etag;
+    private String boardsEtag;
 
     @Ignore
     public Account(Long id, @NonNull String name, @NonNull String userName, @NonNull String url) {
@@ -62,7 +72,7 @@ public class Account implements Serializable {
     }
 
     @Ignore
-    public Account(String name, String userName, String url) {
+    public Account(@NonNull String name, @NonNull String userName, @NonNull String url) {
         this.name = name;
         this.userName = userName;
         this.url = url;
@@ -86,12 +96,12 @@ public class Account implements Serializable {
             try {
                 // Nextcloud might return color format #000 which cannot be parsed by Color.parseColor()
                 // https://github.com/stefan-niedermann/nextcloud-deck/issues/466
-                color = ColorUtil.formatColorToParsableHexString(capabilities.getColor());
-                textColor = ColorUtil.formatColorToParsableHexString(capabilities.getTextColor());
+                color = capabilities.getColor();
+                textColor = capabilities.getTextColor();
             } catch (Exception e) {
                 DeckLog.logError(e);
-                color = "#0082c9";
-                color = "#ffffff";
+                color = Capabilities.DEFAULT_COLOR;
+                textColor = Capabilities.DEFAULT_TEXT_COLOR;
             }
             if (capabilities.getDeckVersion() != null) {
                 serverDeckVersion = capabilities.getDeckVersion().getOriginalVersion();
@@ -141,21 +151,23 @@ public class Account implements Serializable {
         return serialVersionUID;
     }
 
+    @ColorInt
     @NonNull
-    public String getColor() {
+    public Integer getColor() {
         return color;
     }
 
-    public void setColor(@NonNull String color) {
+    public void setColor(@NonNull Integer color) {
         this.color = color;
     }
 
     @NonNull
-    public String getTextColor() {
+    public Integer getTextColor() {
         return textColor;
     }
 
-    public void setTextColor(@NonNull String textColor) {
+    @Deprecated
+    public void setTextColor(@NonNull Integer textColor) {
         this.textColor = textColor;
     }
 
@@ -180,6 +192,15 @@ public class Account implements Serializable {
         this.maintenanceEnabled = maintenanceEnabled;
     }
 
+    @Nullable
+    public String getUserDisplayName() {
+        return userDisplayName;
+    }
+
+    public void setUserDisplayName(@Nullable String userDisplayName) {
+        this.userDisplayName = userDisplayName;
+    }
+
     public String getEtag() {
         return etag;
     }
@@ -188,22 +209,12 @@ public class Account implements Serializable {
         this.etag = etag;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public String getBoardsEtag() {
+        return boardsEtag;
+    }
 
-        Account account = (Account) o;
-
-        if (maintenanceEnabled != account.maintenanceEnabled) return false;
-        if (id != null ? !id.equals(account.id) : account.id != null) return false;
-        if (!name.equals(account.name)) return false;
-        if (!userName.equals(account.userName)) return false;
-        if (!url.equals(account.url)) return false;
-        if (!color.equals(account.color)) return false;
-        if (!textColor.equals(account.textColor)) return false;
-        if (!serverDeckVersion.equals(account.serverDeckVersion)) return false;
-        return etag != null ? etag.equals(account.etag) : account.etag == null;
+    public void setBoardsEtag(String boardsEtag) {
+        this.boardsEtag = boardsEtag;
     }
 
     /**
@@ -216,19 +227,29 @@ public class Account implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + name.hashCode();
-        result = 31 * result + userName.hashCode();
-        result = 31 * result + url.hashCode();
-        result = 31 * result + color.hashCode();
-        result = 31 * result + textColor.hashCode();
-        result = 31 * result + serverDeckVersion.hashCode();
-        result = 31 * result + (maintenanceEnabled ? 1 : 0);
-        result = 31 * result + (etag != null ? etag.hashCode() : 0);
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return maintenanceEnabled == account.maintenanceEnabled &&
+                Objects.equals(id, account.id) &&
+                name.equals(account.name) &&
+                userName.equals(account.userName) &&
+                Objects.equals(userDisplayName, account.userDisplayName) &&
+                url.equals(account.url) &&
+                color.equals(account.color) &&
+                textColor.equals(account.textColor) &&
+                serverDeckVersion.equals(account.serverDeckVersion) &&
+                Objects.equals(etag, account.etag) &&
+                Objects.equals(boardsEtag, account.boardsEtag);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, userName, userDisplayName, url, color, textColor, serverDeckVersion, maintenanceEnabled, etag, boardsEtag);
+    }
+
+    @NonNull
     @Override
     public String toString() {
         return "Account{" +

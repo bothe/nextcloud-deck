@@ -1,20 +1,19 @@
 package it.niedermann.nextcloud.deck.ui;
 
+import static com.nextcloud.android.sso.AccountImporter.REQUEST_AUTH_TOKEN_SSO;
+
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteConstraintException;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.preference.PreferenceManager;
 
 import com.nextcloud.android.sso.AccountImporter;
@@ -23,22 +22,20 @@ import com.nextcloud.android.sso.exceptions.AndroidGetAccountsPermissionNotGrant
 import com.nextcloud.android.sso.exceptions.NextcloudFilesAppNotInstalledException;
 import com.nextcloud.android.sso.helper.SingleAccountHelper;
 import com.nextcloud.android.sso.model.SingleSignOnAccount;
+import com.nextcloud.android.sso.ui.UiExceptionManager;
 
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.api.IResponseCallback;
+import it.niedermann.nextcloud.deck.api.ResponseCallback;
 import it.niedermann.nextcloud.deck.databinding.ActivityImportAccountBinding;
 import it.niedermann.nextcloud.deck.exceptions.OfflineException;
 import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.model.ocs.Capabilities;
 import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
 import it.niedermann.nextcloud.deck.persistence.sync.SyncWorker;
-import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.WrappedLiveData;
 import it.niedermann.nextcloud.deck.ui.exception.ExceptionDialogFragment;
 import it.niedermann.nextcloud.deck.ui.exception.ExceptionHandler;
-import it.niedermann.nextcloud.deck.util.ExceptionUtil;
-
-import static com.nextcloud.android.sso.AccountImporter.REQUEST_AUTH_TOKEN_SSO;
 
 public class ImportAccountActivity extends AppCompatActivity {
 
@@ -79,18 +76,16 @@ public class ImportAccountActivity extends AppCompatActivity {
             try {
                 AccountImporter.pickNewAccount(this);
             } catch (NextcloudFilesAppNotInstalledException e) {
-                ExceptionUtil.handleNextcloudFilesAppNotInstalledException(this, e);
+                UiExceptionManager.showDialogForException(this, e);
+                DeckLog.warn("=============================================================");
+                DeckLog.warn("Nextcloud app is not installed. Cannot choose account");
+                DeckLog.logError(e);
+                binding.addButton.setEnabled(true);
             } catch (AndroidGetAccountsPermissionNotGranted e) {
                 binding.addButton.setEnabled(true);
                 AccountImporter.requestAndroidAccountPermissionsAndPickAccount(this);
             }
         });
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            Drawable wrapDrawable = DrawableCompat.wrap(binding.progressCircular.getIndeterminateDrawable());
-            DrawableCompat.setTint(wrapDrawable, ContextCompat.getColor(this, R.color.defaultBrand));
-            binding.progressCircular.setIndeterminateDrawable(DrawableCompat.unwrap(wrapDrawable));
-        }
     }
 
     @Override
@@ -118,31 +113,24 @@ public class ImportAccountActivity extends AppCompatActivity {
                         });
 
                         SingleAccountHelper.setCurrentAccount(getApplicationContext(), account.name);
-                        SyncManager syncManager = new SyncManager(ImportAccountActivity.this);
-                        final WrappedLiveData<Account> accountLiveData = syncManager.createAccount(new Account(account.name, account.userId, account.url));
-                        accountLiveData.observe(ImportAccountActivity.this, (Account createdAccount) -> {
-                            if (accountLiveData.hasError()) {
-                                final Throwable error = accountLiveData.getError();
-                                if (error instanceof SQLiteConstraintException) {
-                                    DeckLog.error("Account has already been added, this should not be the case");
-                                }
-                                assert error != null;
-                                setStatusText(error.getMessage());
-                                runOnUiThread(() -> ExceptionDialogFragment.newInstance(error, createdAccount).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
-                                restoreWifiPref();
-                            } else {
+                        final var syncManager = new SyncManager(ImportAccountActivity.this);
+                        final var accountToCreate = new Account(account.name, account.userId, account.url);
+                        syncManager.createAccount(accountToCreate, new IResponseCallback<>() {
+                            @Override
+                            public void onResponse(Account createdAccount) {
                                 // Remember last account - THIS HAS TO BE DONE SYNCHRONOUSLY
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                DeckLog.log("--- Write: shared_preference_last_account" + " | " + createdAccount.getId());
-                                editor.putLong(sharedPreferenceLastAccount, createdAccount.getId());
-                                editor.commit();
+                                DeckLog.log("--- Write: shared_preference_last_account | ", createdAccount.getId());
+                                sharedPreferences
+                                        .edit()
+                                        .putLong(sharedPreferenceLastAccount, createdAccount.getId())
+                                        .commit();
 
-                                syncManager.refreshCapabilities(new IResponseCallback<Capabilities>(createdAccount) {
+                                syncManager.refreshCapabilities(new ResponseCallback<>(createdAccount) {
                                     @Override
                                     public void onResponse(Capabilities response) {
                                         if (!response.isMaintenanceEnabled()) {
-                                            if (response.getDeckVersion().isSupported(getApplicationContext())) {
-                                                syncManager.synchronize(new IResponseCallback<Boolean>(account) {
+                                            if (response.getDeckVersion().isSupported()) {
+                                                syncManager.synchronize(new ResponseCallback<>(account) {
                                                     @Override
                                                     public void onResponse(Boolean response) {
                                                         restoreWifiPref();
@@ -162,11 +150,8 @@ public class ImportAccountActivity extends AppCompatActivity {
                                             } else {
                                                 setStatusText(getString(R.string.deck_outdated_please_update, response.getDeckVersion().getOriginalVersion()));
                                                 runOnUiThread(() -> {
-                                                    binding.updateDeckButton.setOnClickListener((v) -> {
-                                                        Intent openURL = new Intent(Intent.ACTION_VIEW);
-                                                        openURL.setData(Uri.parse(createdAccount.getUrl() + urlFragmentUpdateDeck));
-                                                        startActivity(openURL);
-                                                    });
+                                                    binding.updateDeckButton.setOnClickListener((v) -> startActivity(new Intent(Intent.ACTION_VIEW)
+                                                            .setData(Uri.parse(createdAccount.getUrl() + urlFragmentUpdateDeck))));
                                                     binding.updateDeckButton.setVisibility(View.VISIBLE);
                                                 });
                                                 rollbackAccountCreation(syncManager, createdAccount.getId());
@@ -190,6 +175,17 @@ public class ImportAccountActivity extends AppCompatActivity {
                                     }
                                 });
                             }
+
+                            @Override
+                            public void onError(Throwable error) {
+                                IResponseCallback.super.onError(error);
+                                if (error instanceof SQLiteConstraintException) {
+                                    DeckLog.error("Account has already been added, this should not be the case");
+                                }
+                                setStatusText(error.getMessage());
+                                runOnUiThread(() -> ExceptionDialogFragment.newInstance(error, accountToCreate).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
+                                restoreWifiPref();
+                            }
                         });
                     }
                 });
@@ -212,7 +208,7 @@ public class ImportAccountActivity extends AppCompatActivity {
         DeckLog.log("Rolling back account creation for " + accountId);
         syncManager.deleteAccount(accountId);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        DeckLog.log("--- Remove: shared_preference_last_account" + " | " + accountId);
+        DeckLog.log("--- Remove: shared_preference_last_account |", accountId);
         editor.remove(sharedPreferenceLastAccount);
         editor.commit(); // Has to be done synchronously
         runOnUiThread(() -> binding.addButton.setEnabled(true));
@@ -234,17 +230,22 @@ public class ImportAccountActivity extends AppCompatActivity {
 
     @SuppressLint("ApplySharedPref")
     private void disableWifiPref() {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
         DeckLog.info("--- Temporarily disable sync on wifi only setting");
-        editor.putBoolean(prefKeyWifiOnly, false);
-        editor.commit();
-
+        sharedPreferences
+                .edit()
+                .putBoolean(prefKeyWifiOnly, false)
+                .commit();
     }
 
     private void restoreWifiPref() {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
         DeckLog.info("--- Restoring sync on wifi only setting");
-        editor.putBoolean(prefKeyWifiOnly, originalWifiOnlyValue);
-        editor.apply();
+        sharedPreferences
+                .edit()
+                .putBoolean(prefKeyWifiOnly, originalWifiOnlyValue)
+                .apply();
+    }
+
+    public static Intent createIntent(@NonNull Context context) {
+        return new Intent(context, ImportAccountActivity.class);
     }
 }

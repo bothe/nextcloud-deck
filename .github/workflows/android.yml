@@ -12,6 +12,15 @@ jobs:
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
 
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Lint
+        run: bash ./gradlew lintDebug --stacktrace
+
   test:
     name: Unit tests
     runs-on: ubuntu-latest
@@ -19,19 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Unit tests
-        run: bash ./gradlew test --stacktrace
-
-  instrumented:
-    name: Android instrumented tests
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Android instrumented tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          script: ./gradlew connectDevDebugAndroidTest --stacktrace
+        run: bash ./gradlew test
 
   codeql:
     name: CodeQL security scan
@@ -44,7 +41,7 @@ jobs:
         with:
           languages: java
       - name: Build debug APK
-        run: bash ./gradlew assembleDev --stacktrace
+        run: bash ./gradlew assembleDev
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
 
@@ -55,9 +52,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build debug APK
-        run: bash ./gradlew assembleDev --stacktrace
+        run: bash ./gradlew assembleDev
       - name: Upload APK
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2.2.4
         with:
           name: app-dev-debug
           path: app/build/outputs/apk/dev/debug/app-dev-debug.apk

@@ -30,7 +30,7 @@ An Android client for [Nextcloud Deck App](https://github.com/nextcloud/deck/).
 
 | List View | Card View |
 | --- | --- |
-| ![Screenshot of list view](/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png) | ![Screenshot of card](/fastlane/metadata/android/en-US/images/phoneScreenshots/3.png) |
+| ![Screenshot of list view](/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png) | ![Screenshot of card](/fastlane/metadata/android/en-US/images/phoneScreenshots/5.png) |
 
 ## 🚀 Features
 * Multiple accounts 👥
@@ -42,17 +42,14 @@ An Android client for [Nextcloud Deck App](https://github.com/nextcloud/deck/).
 * Translated in many languages 🌎
 
 ## 🏁 Planned features
-* [Widgets](https://github.com/stefan-niedermann/nextcloud-deck/issues/217)
-* [Add more sources to upload attachments](https://github.com/stefan-niedermann/nextcloud-deck/issues/289)
-* [Move cards to other boards](https://github.com/stefan-niedermann/nextcloud-deck/issues/453)
-* Further stabilization of the UI and bugfixes
-* [Improve synchronization speed](https://github.com/nextcloud/deck/issues/1650)
+* Enhanced support for projects
 
 ## 👪 Join the team
 * Test the app with different devices
 * Report issues in the [issue tracker](https://github.com/stefan-niedermann/nextcloud-deck/issues)
 * [Pick a good first issue](https://github.com/stefan-niedermann/nextcloud-deck/labels/good%20first%20issue) :notebook:
 * Create a [Pull Request](https://opensource.guide/how-to-contribute/#opening-a-pull-request)
+* Help increasing the test coverage by contributing unit tests
 * Translate the app on [Transifex](https://www.transifex.com/nextcloud/nextcloud/android-deck/)
 * Send me a bottle of your favorite beer :beers: :wink:
 

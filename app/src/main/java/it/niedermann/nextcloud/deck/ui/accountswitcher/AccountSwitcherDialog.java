@@ -1,10 +1,9 @@
 package it.niedermann.nextcloud.deck.ui.accountswitcher;
 
 import android.app.Dialog;
-import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -16,43 +15,45 @@ import com.bumptech.glide.request.RequestOptions;
 import com.nextcloud.android.sso.AccountImporter;
 import com.nextcloud.android.sso.exceptions.AndroidGetAccountsPermissionNotGranted;
 import com.nextcloud.android.sso.exceptions.NextcloudFilesAppNotInstalledException;
+import com.nextcloud.android.sso.ui.UiExceptionManager;
 
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import it.niedermann.android.util.DimensionUtil;
+import it.niedermann.nextcloud.deck.DeckApplication;
+import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.DialogAccountSwitcherBinding;
-import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
+import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.ui.MainViewModel;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
 import it.niedermann.nextcloud.deck.ui.manageaccounts.ManageAccountsActivity;
-import it.niedermann.nextcloud.deck.util.ExceptionUtil;
 
 import static it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.LiveDataHelper.observeOnce;
-import static it.niedermann.nextcloud.deck.ui.MainActivity.ACTIVITY_MANAGE_ACCOUNTS;
-import static it.niedermann.nextcloud.deck.util.DimensionUtil.dpToPx;
 
-public class AccountSwitcherDialog extends BrandedDialogFragment {
+public class AccountSwitcherDialog extends DialogFragment {
 
     private AccountSwitcherAdapter adapter;
-    private SyncManager syncManager;
     private DialogAccountSwitcherBinding binding;
     private MainViewModel viewModel;
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        syncManager = new SyncManager(requireActivity());
-    }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         binding = DialogAccountSwitcherBinding.inflate(requireActivity().getLayoutInflater());
-        binding.accountName.setText(viewModel.getCurrentAccount().getUserName());
-        binding.accountHost.setText(Uri.parse(viewModel.getCurrentAccount().getUrl()).getHost());
+        viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+
+        final Account currentAccount = viewModel.getCurrentAccount();
+        binding.accountName.setText(
+                TextUtils.isEmpty(currentAccount.getUserDisplayName())
+                        ? currentAccount.getUserName()
+                        : currentAccount.getUserDisplayName()
+        );
+        binding.accountHost.setText(Uri.parse(currentAccount.getUrl()).getHost());
         binding.check.setSelected(true);
 
         Glide.with(requireContext())
-                .load(viewModel.getCurrentAccount().getAvatarUrl(dpToPx(binding.currentAccountItemAvatar.getContext(), R.dimen.avatar_size)))
+                .load(currentAccount.getAvatarUrl(DimensionUtil.INSTANCE.dpToPx(binding.currentAccountItemAvatar.getContext(), R.dimen.avatar_size)))
                 .placeholder(R.drawable.ic_baseline_account_circle_24)
                 .error(R.drawable.ic_baseline_account_circle_24)
                 .apply(RequestOptions.circleCropTransform())
@@ -65,10 +66,11 @@ public class AccountSwitcherDialog extends BrandedDialogFragment {
             dismiss();
         }));
 
-        observeOnce(syncManager.readAccounts(), requireActivity(), (accounts) -> {
-            accounts.remove(viewModel.getCurrentAccount());
-            adapter.setAccounts(accounts);
-        });
+        observeOnce(viewModel.readAccounts(), requireActivity(), (accounts) ->
+                adapter.setAccounts(accounts.stream().filter(account ->
+                        !Objects.equals(account.getId(), viewModel.getCurrentAccount().getId())).collect(Collectors.toList())));
+
+        observeOnce(DeckApplication.readCurrentBoardColor(), requireActivity(), this::applyBrand);
 
         binding.accountsList.setAdapter(adapter);
 
@@ -76,7 +78,10 @@ public class AccountSwitcherDialog extends BrandedDialogFragment {
             try {
                 AccountImporter.pickNewAccount(requireActivity());
             } catch (NextcloudFilesAppNotInstalledException e) {
-                ExceptionUtil.handleNextcloudFilesAppNotInstalledException(requireContext(), e);
+                UiExceptionManager.showDialogForException(requireContext(), e);
+                DeckLog.warn("=============================================================");
+                DeckLog.warn("Nextcloud app is not installed. Cannot choose account");
+                DeckLog.logError(e);
             } catch (AndroidGetAccountsPermissionNotGranted e) {
                 AccountImporter.requestAndroidAccountPermissionsAndPickAccount(requireActivity());
             }
@@ -84,7 +89,7 @@ public class AccountSwitcherDialog extends BrandedDialogFragment {
         });
 
         binding.manageAccounts.setOnClickListener((v) -> {
-            requireActivity().startActivityForResult(new Intent(requireContext(), ManageAccountsActivity.class), ACTIVITY_MANAGE_ACCOUNTS);
+            requireActivity().startActivity(ManageAccountsActivity.createIntent(requireContext()));
             dismiss();
         });
 
@@ -97,8 +102,7 @@ public class AccountSwitcherDialog extends BrandedDialogFragment {
         return new AccountSwitcherDialog();
     }
 
-    @Override
-    public void applyBrand(int mainColor) {
+    private void applyBrand(int mainColor) {
 //        applyBrandToLayerDrawable((LayerDrawable) binding.check.getDrawable(), R.id.area, mainColor);
     }
 }

@@ -1,5 +1,7 @@
 package it.niedermann.nextcloud.deck.ui.filter;
 
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.getSecondaryForegroundColorDependingOnTheme;
+
 import android.app.Dialog;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -11,24 +13,17 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import it.niedermann.android.util.ColorUtil;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.DialogFilterBinding;
 import it.niedermann.nextcloud.deck.model.enums.EDueType;
-import it.niedermann.nextcloud.deck.model.internal.FilterInformation;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
-
-import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.getSecondaryForegroundColorDependingOnTheme;
-import static it.niedermann.nextcloud.deck.util.ColorUtil.getContrastRatio;
 
 public class FilterDialogFragment extends BrandedDialogFragment {
 
@@ -47,18 +42,21 @@ public class FilterDialogFragment extends BrandedDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        indicator = getResources().getDrawable(R.drawable.circle_grey600_8dp);
-        indicator.setColorFilter(getResources().getColor(R.color.defaultBrand), PorterDuff.Mode.SRC_ATOP);
+        final var context = requireContext();
+
+        indicator = ContextCompat.getDrawable(context, R.drawable.circle_grey600_8dp);
+        assert indicator != null;
+        indicator.setColorFilter(ContextCompat.getColor(context, R.color.defaultBrand), PorterDuff.Mode.SRC_ATOP);
 
         filterViewModel = new ViewModelProvider(requireActivity()).get(FilterViewModel.class);
 
-        final AlertDialog.Builder dialogBuilder = new BrandedAlertDialogBuilder(requireContext());
+        final var dialogBuilder = new AlertDialog.Builder(context);
 
         binding = DialogFilterBinding.inflate(requireActivity().getLayoutInflater());
-        binding.viewPager.setAdapter(new TabsPagerAdapter(getChildFragmentManager(), getLifecycle()));
+        binding.viewPager.setAdapter(new TabsPagerAdapter(this));
         binding.viewPager.setOffscreenPageLimit(tabTitles.length);
 
-        LiveData<FilterInformation> filterInformationDraft = filterViewModel.getFilterInformationDraft();
+        final var filterInformationDraft = filterViewModel.getFilterInformationDraft();
         new TabLayoutMediator(binding.tabLayout, binding.viewPager, (tab, position) -> {
             filterInformationDraft.observe(this, (draft) -> {
                 switch (position) {
@@ -94,7 +92,7 @@ public class FilterDialogFragment extends BrandedDialogFragment {
                 .setTitle(R.string.simple_filter)
                 .setView(binding.getRoot())
                 .setNeutralButton(android.R.string.cancel, null)
-                .setNegativeButton(R.string.simple_clear, (a, b) -> filterViewModel.clearFilterInformation())
+                .setNegativeButton(R.string.simple_clear, (a, b) -> filterViewModel.clearFilterInformation(false))
                 .setPositiveButton(R.string.simple_filter, (a, b) -> filterViewModel.publishFilterInformationDraft())
                 .create();
     }
@@ -106,15 +104,15 @@ public class FilterDialogFragment extends BrandedDialogFragment {
     @Override
     public void applyBrand(int mainColor) {
         @ColorInt final int finalMainColor = getSecondaryForegroundColorDependingOnTheme(binding.tabLayout.getContext(), mainColor);
-        final boolean contrastRatioIsSufficient = getContrastRatio(mainColor, ContextCompat.getColor(binding.tabLayout.getContext(), R.color.primary)) > 1.7d;
+        final boolean contrastRatioIsSufficient = ColorUtil.INSTANCE.getContrastRatio(mainColor, ContextCompat.getColor(binding.tabLayout.getContext(), R.color.primary)) > 1.7d;
         binding.tabLayout.setSelectedTabIndicatorColor(contrastRatioIsSufficient ? mainColor : finalMainColor);
         indicator.setColorFilter(contrastRatioIsSufficient ? mainColor : finalMainColor, PorterDuff.Mode.SRC_ATOP);
     }
 
     private static class TabsPagerAdapter extends FragmentStateAdapter {
 
-        TabsPagerAdapter(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle) {
-            super(fragmentManager, lifecycle);
+        TabsPagerAdapter(final Fragment f) {
+            super(f);
         }
 
         @NonNull

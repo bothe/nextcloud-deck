@@ -6,14 +6,17 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import it.niedermann.nextcloud.deck.databinding.ActivityArchivedBinding;
 import it.niedermann.nextcloud.deck.model.Account;
-import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedActivity;
+import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.LiveDataHelper;
+import it.niedermann.nextcloud.deck.ui.MainViewModel;
 import it.niedermann.nextcloud.deck.ui.exception.ExceptionHandler;
+import it.niedermann.nextcloud.deck.ui.pickstack.PickStackViewModel;
 
-public class ArchivedCardsActvitiy extends BrandedActivity {
+public class ArchivedCardsActvitiy extends AppCompatActivity {
 
     private static final String BUNDLE_KEY_ACCOUNT = "accountId";
     private static final String BUNDLE_KEY_BOARD_ID = "boardId";
@@ -21,7 +24,8 @@ public class ArchivedCardsActvitiy extends BrandedActivity {
 
     private ActivityArchivedBinding binding;
     private ArchivedCardsAdapter adapter;
-    private SyncManager syncManager;
+    private MainViewModel viewModel;
+    private PickStackViewModel pickStackViewModel;
 
     private Account account;
     private long boardId;
@@ -50,23 +54,22 @@ public class ArchivedCardsActvitiy extends BrandedActivity {
         }
 
         binding = ActivityArchivedBinding.inflate(getLayoutInflater());
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        pickStackViewModel = new ViewModelProvider(this).get(PickStackViewModel.class);
+
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
 
-        syncManager = new SyncManager(this);
+        viewModel.setCurrentAccount(account);
+        LiveDataHelper.observeOnce(viewModel.getFullBoardById(account.getId(), boardId), this, (fullBoard) -> {
+            viewModel.setCurrentBoard(fullBoard.getBoard());
 
-        adapter = new ArchivedCardsAdapter(this, getSupportFragmentManager(), account, boardId, false, syncManager, this);
-        binding.recyclerView.setAdapter(adapter);
+            adapter = new ArchivedCardsAdapter(this, getSupportFragmentManager(), viewModel);
+            binding.recyclerView.setAdapter(adapter);
 
-        syncManager.getArchivedFullCardsForBoard(account.getId(), boardId).observe(this, (fullCards) -> {
-            adapter.setCardList(fullCards);
+            viewModel.getArchivedFullCardsForBoard(account.getId(), boardId).observe(this, (fullCards) -> adapter.setCardList(fullCards));
         });
 
-    }
-
-    @Override
-    public void applyBrand(int mainColor) {
-        // Nothing to do...
     }
 
     @NonNull

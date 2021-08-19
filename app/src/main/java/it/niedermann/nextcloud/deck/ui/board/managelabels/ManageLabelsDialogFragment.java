@@ -1,12 +1,18 @@
 package it.niedermann.nextcloud.deck.ui.board.managelabels;
 
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditTextInputLayout;
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToFAB;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -15,18 +21,13 @@ import java.util.Random;
 
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
+import it.niedermann.nextcloud.deck.api.IResponseCallback;
 import it.niedermann.nextcloud.deck.databinding.DialogBoardManageLabelsBinding;
 import it.niedermann.nextcloud.deck.model.Label;
 import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
-import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.WrappedLiveData;
 import it.niedermann.nextcloud.deck.ui.MainViewModel;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedDeleteAlertDialogBuilder;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
-
-import static it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.LiveDataHelper.observeOnce;
-import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditText;
-import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToFAB;
+import it.niedermann.nextcloud.deck.ui.branding.DeleteAlertDialogBuilder;
 
 public class ManageLabelsDialogFragment extends BrandedDialogFragment implements ManageLabelListener, EditLabelListener {
 
@@ -38,7 +39,6 @@ public class ManageLabelsDialogFragment extends BrandedDialogFragment implements
     private static final String KEY_BOARD_ID = "board_id";
 
     private long boardId;
-    private SyncManager syncManager;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -62,13 +62,12 @@ public class ManageLabelsDialogFragment extends BrandedDialogFragment implements
         super.onCreate(savedInstanceState);
 
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        final AlertDialog.Builder dialogBuilder = new BrandedAlertDialogBuilder(requireContext());
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
         binding = DialogBoardManageLabelsBinding.inflate(requireActivity().getLayoutInflater());
         colors = getResources().getStringArray(R.array.board_default_colors);
         adapter = new ManageLabelsAdapter(this, requireContext());
         binding.labels.setAdapter(adapter);
-        syncManager = new SyncManager(requireActivity());
-        syncManager.getFullBoardById(viewModel.getCurrentAccount().getId(), boardId).observe(this, (fullBoard) -> {
+        viewModel.getFullBoardById(viewModel.getCurrentAccount().getId(), boardId).observe(this, (fullBoard) -> {
             if (fullBoard == null) {
                 throw new IllegalStateException("FullBoard should not be null");
             }
@@ -80,24 +79,28 @@ public class ManageLabelsDialogFragment extends BrandedDialogFragment implements
             final Label label = new Label();
             label.setBoardId(boardId);
             label.setTitle(binding.addLabelTitle.getText().toString());
-            label.setColor(colors[new Random().nextInt(colors.length)].substring(1));
+            label.setColor(colors[new Random().nextInt(colors.length)]);
 
-            WrappedLiveData<Label> createLiveData = syncManager.createLabel(viewModel.getCurrentAccount().getId(), label, boardId);
-            observeOnce(createLiveData, this, (createdLabel) -> {
-                if (createLiveData.hasError()) {
-                    final Throwable error = createLiveData.getError();
-                    assert error != null;
-                    if (error instanceof SQLiteConstraintException) {
-                        Toast.makeText(requireContext(), getString(R.string.tag_already_exists, label.getTitle()), Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(requireContext(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-                        DeckLog.logError(error);
-                    }
-                } else {
-                    binding.addLabelTitle.setText(null);
-                    Toast.makeText(requireContext(), getString(R.string.tag_successfully_added, label.getTitle()), Toast.LENGTH_LONG).show();
+            viewModel.createLabel(viewModel.getCurrentAccount().getId(), label, boardId, new IResponseCallback<>() {
+                @Override
+                public void onResponse(Label response) {
+                    requireActivity().runOnUiThread(() -> {
+                        binding.fab.setEnabled(true);
+                        binding.addLabelTitle.setText(null);
+                    });
+                    toastFromThread(getString(R.string.tag_successfully_added, label.getTitle()));
                 }
-                binding.fab.setEnabled(true);
+
+                @Override
+                public void onError(Throwable throwable) {
+                    requireActivity().runOnUiThread(() -> binding.fab.setEnabled(true));
+                    if (throwable instanceof SQLiteConstraintException) {
+                        toastFromThread(getString(R.string.tag_already_exists, label.getTitle()));
+                    } else {
+                        toastFromThread(throwable.getLocalizedMessage());
+                        IResponseCallback.super.onError(throwable);
+                    }
+                }
             });
         });
         binding.addLabelTitle.setOnEditorActionListener((v, actionId, event) -> binding.fab.performClick());
@@ -111,7 +114,7 @@ public class ManageLabelsDialogFragment extends BrandedDialogFragment implements
     @Override
     public void applyBrand(int mainColor) {
         applyBrandToFAB(mainColor, binding.fab);
-        applyBrandToEditText(mainColor, binding.addLabelTitle);
+        applyBrandToEditTextInputLayout(mainColor, binding.addLabelTitleWrapper);
     }
 
     public static DialogFragment newInstance(long boardLocalId) {
@@ -126,9 +129,9 @@ public class ManageLabelsDialogFragment extends BrandedDialogFragment implements
 
     @Override
     public void requestDelete(@NonNull Label label) {
-        observeOnce(syncManager.countCardsWithLabel(label.getLocalId()), this, (count) -> {
+        viewModel.countCardsWithLabel(label.getLocalId(), (count) -> requireActivity().runOnUiThread(() -> {
             if (count > 0) {
-                new BrandedDeleteAlertDialogBuilder(requireContext())
+                new DeleteAlertDialogBuilder(requireContext())
                         .setTitle(getString(R.string.delete_something, label.getTitle()))
                         .setMessage(getResources().getQuantityString(R.plurals.do_you_want_to_delete_the_label, count, count))
                         .setPositiveButton(R.string.simple_delete, (dialog, which) -> deleteLabel(label))
@@ -137,17 +140,22 @@ public class ManageLabelsDialogFragment extends BrandedDialogFragment implements
             } else {
                 deleteLabel(label);
             }
-        });
+        }));
     }
 
     private void deleteLabel(@NonNull Label label) {
-        final WrappedLiveData<Void> deleteLiveData = syncManager.deleteLabel(label);
-        observeOnce(deleteLiveData, this, (v) -> {
-            if (deleteLiveData.hasError() && !SyncManager.ignoreExceptionOnVoidError(deleteLiveData.getError())) {
-                final Throwable error = deleteLiveData.getError();
-                assert error != null;
-                Toast.makeText(requireContext(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-                DeckLog.logError(deleteLiveData.getError());
+        viewModel.deleteLabel(label, new IResponseCallback<>() {
+            @Override
+            public void onResponse(Void response) {
+                DeckLog.info("Successfully deleted label", label.getTitle());
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                if (!SyncManager.ignoreExceptionOnVoidError(throwable)) {
+                    IResponseCallback.super.onError(throwable);
+                    toastFromThread(throwable.getLocalizedMessage());
+                }
             }
         });
     }
@@ -159,18 +167,29 @@ public class ManageLabelsDialogFragment extends BrandedDialogFragment implements
 
     @Override
     public void onLabelUpdated(@NonNull Label label) {
-        WrappedLiveData<Label> updateLiveData = syncManager.updateLabel(label);
-        observeOnce(updateLiveData, this, (updatedLabel) -> {
-            if (updateLiveData.hasError()) {
-                final Throwable error = updateLiveData.getError();
-                assert error != null;
+        viewModel.updateLabel(label, new IResponseCallback<>() {
+            @Override
+            public void onResponse(Label label) {
+                DeckLog.info("Successfully update label", label.getTitle());
+            }
+
+            @Override
+            public void onError(Throwable error) {
                 if (error instanceof SQLiteConstraintException) {
-                    Toast.makeText(requireContext(), getString(R.string.tag_already_exists, label.getTitle()), Toast.LENGTH_LONG).show();
+                    toastFromThread(getString(R.string.tag_already_exists, label.getTitle()));
                 } else {
-                    Toast.makeText(requireContext(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-                    DeckLog.logError(updateLiveData.getError());
+                    IResponseCallback.super.onError(error);
+                    toastFromThread(error.getLocalizedMessage());
                 }
             }
         });
+    }
+
+    /**
+     * Ensures that the {@param message} gets toasted on the {@link UiThread} to avoid <a href="https://github.com/stefan-niedermann/nextcloud-deck/issues/917">crashes</a>.
+     */
+    @AnyThread
+    private void toastFromThread(@Nullable String message) {
+        requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show());
     }
 }

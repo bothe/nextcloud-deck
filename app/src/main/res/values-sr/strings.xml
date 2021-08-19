@@ -1,14 +1,6 @@
 <resources>
     <string name="navigation_drawer_open">Отвори навигациону фиоку</string>
     <string name="navigation_drawer_close">Затвори навигациону фиоку</string>
-
-    <string name="drawer_header_background">Позадинска слика заглавља фиоке</string>
-    <string name="drawer_current_account">Тренутни налог</string>
-    <string name="drawer_middle_account">Средишњи налог</string>
-    <string name="drawer_end_account">Последњи налог</string>
-    <string name="drawer_manage_accounts">Управљање налозима</string>
-
-    <!-- Simple values -->
     <string name="simple_boards">Табле</string>
     <string name="simple_add">Додај</string>
     <string name="simple_save">Сачувај</string>
@@ -39,13 +31,11 @@
     <string name="simple_copied">Копирано</string>
     <string name="simple_archive">Архива</string>
     <string name="simple_unassigned">Недодељен</string>
-
     <string name="edit_board">Измени таблу</string>
     <string name="archive_board">Архивирај таблу</string>
     <string name="delete_board">Избриши таблу</string>
     <string name="delete_something">Обриши %1$s</string>
 
-    <!-- About -->
     <string name="about">О програму</string>
     <string name="about_version_title">Верзија</string>
     <string name="about_version">Тренутно користите %1$s</string>
@@ -65,15 +55,12 @@
     <string name="about_app_license">Ова апликација је лиценцирана под ГНУовом општом јавном лиценцом в3+.</string>
     <string name="about_app_license_button">Прикажи лиценцу</string>
     <string name="about_icons_disclaimer_title">Иконе</string>
-    <string name="about_icons_disclaimer_app_icon">За оригиналну иконицу, погледајте %1$s.</string>
+    <string name="about_icons_disclaimer_app_icon">За оригиналну икону, погледајте %1$s.</string>
     <string name="about_icons_disclaimer_mdi_icons">Све остале иконе коришћене у овој апликацији су %1$s које је направио Гугл и лиценциране су под Апач 2.0 лиценцом.</string>
     <string name="about_icons_disclaimer_mdi">Иконе у Материјал дизајну</string>
     <string name="about_credits_tab_title">Заслуге</string>
     <string name="about_contribution_tab_title">Допринос</string>
     <string name="about_license_tab_title">Лиценца</string>
-
-    <string name="copied_to_clipboard">Копирано у клипборд</string>
-
     <string name="seconds_ago">пре неколико секунди</string>
     <string name="edit">Измени</string>
     <string name="label_labels">Одаберите ознаке</string>
@@ -81,7 +68,7 @@
     <string name="hint_assign_people">Задужите кориснике</string>
     <string name="hint_due_date_date">Рок</string>
     <string name="card_not_found">Картица није нађена</string>
-    <string name="card_not_found_message">Картица не може да се нађе. Можда је недавно обрисана.</string>
+    <string name="card_not_found_message">Картица није нађена. Можда је недавно обрисана.</string>
 
     <string name="add_account">Додај налог</string>
     <string name="choose_account">Одаберите налог</string>
@@ -114,6 +101,7 @@
     <string name="no_lists_yet">Нема још спискова</string>
     <string name="do_you_want_to_save_your_changes">Да ли желите да сачувате измене?</string>
     <string name="do_you_want_to_archive_all_cards_of_the_list">Да ли желите да архивирате све картице са %1$s?</string>
+    <string name="do_you_want_to_archive_all_cards_of_the_filtered_list">Да ли желите да архивирате све филтриране картице са %1$s?</string>
     <plurals name="do_you_want_to_delete_the_current_list">
         <item quantity="one">Овим ћете заувек обрисати %1$d картицу са овог списка.</item>
         <item quantity="few">Овим ћете заувек обрисати %1$d картице са овог списка.</item>
@@ -126,17 +114,18 @@
     </plurals>
     <string name="add_a_new_list_using_the_button">Додај нови списак користећи + дугме</string>
     <string name="add_a_new_card_using_the_button">Додајте нову картицу на + дугме</string>
-    <string name="update_deck">Ажурирај Шпил</string>
-    <string name="your_deck_version_is_too_old">Ваша верзија Шпила је превише стара</string>
-    <string name="deck_outdated_please_update">Верзија апликације Шпил је стара (%1$s). Ажурирајте да бисте користили ову Андроид апликацију као клијента.</string>
     <string name="delete_board_message">Ово ће трајно да уклони ову таблу укључујући све спискове и картице.</string>
-    <string name="settings_theme_title">Тамна тема</string>
+    <string name="settings_theme_title">Тема</string>
     <string name="settings_branding_title">Брендирање</string>
     <string name="settings_compact_title">Компактан режим</string>
     <string name="settings_background_sync">Позадинска синхронизација</string>
     <string name="pref_value_wifi_and_mobile">Синхронизуј и на бежичној и на мобилној вези</string>
     <string name="pref_value_wifi_only">Синхронизуј само преко бежичне везе</string>
-    <string name="pref_value_theme_light">Светла</string>
+    <string-array name="darkmode_entries">
+        <item>системска</item>
+        <item>светла</item>
+        <item>тамна</item>
+    </string-array>
     <string name="unassigned_user">Раздужен %1$s</string>
     <string name="no_activities">Нема активности на овој картици. Морате бити повезани на интернет да бисте учитали и приказали активности.</string>
     <string name="share_board">Подели таблу</string>
@@ -147,20 +136,13 @@
     <string name="no_content">Још нема садржаја</string>
     <string name="last_background_sync">Последња синх.:</string>
     <string name="simple_off">Искључена</string>
-    <string name="minutes_15">15 минута</string>
-    <string name="hour_1">1 сат</string>
-    <string name="hours_6">6 сати</string>
     <string name="action_card_move">Премести картицу</string>
     <string name="action_card_move_title">Премести %1$s</string>
-    <string name="please_add_an_account_first">Прво додајте налог</string>
-    <string name="title_is_mandatory">Наслов је обавезан</string>
     <string name="provide_at_least_a_title_or_description">Дајте бар наслов или опис</string>
     <string name="welcome_text">Добродошли у %1$s</string>
-    <string name="save_card_before_attachment">Картица мора да се сачува пре него што може да јој се дода прилог.</string>
     <string name="maintenance_mode_explanation">Сервер %1$s је тренутно у режиму одржавања. Контактирајте администратора или покушајте касније.</string>
     <string name="share_add_to_card">Додај на картицу</string>
     <string name="share_success">Успешно додат %1$s на %2$s</string>
-    <string name="could_not_copy_to_clipboard">Не могу да копирам у оставу</string>
     <string name="add_comment">Додај коментар</string>
     <string name="card_edit_comments">Коментари</string>
     <string name="no_comments_yet">Још нема коментара</string>
@@ -172,11 +154,9 @@
     <string name="open_in_browser">Отвори у прегледачу</string>
     <string name="updating_card">Ажурирам картицу…</string>
 
-    <!-- Move lists -->
     <string name="move_list_right">Помери списак удесно</string>
     <string name="move_list_left">Помери списак улево</string>
 
-    <!-- Filter -->
     <string name="filter_no_filter">Све</string>
     <string name="filter_overdue">Прошао рок</string>
     <string name="filter_today">Данас</string>
@@ -187,7 +167,6 @@
     <string name="filter_by_assigned_user">Филтрирај по додељеном кориснику</string>
     <string name="filter_by_duedate">Филтрирај по року</string>
 
-    <!-- Archived cards -->
     <string name="archived_cards">Архивиране картице</string>
     <string name="action_card_dearchive">Поништи архивирање картице</string>
     <string name="action_archived_cards">Прегледај архивиране картице</string>
@@ -202,20 +181,15 @@
     <string name="filter_user_title">Корисници</string>
     <string name="filter_duedate_title">Рок</string>
 
-    <!-- Archived boards -->
     <string name="action_board_dearchive">Поништи архивирање табле</string>
     <string name="archived_boards">Архивиране табле</string>
 
-    <!-- Errors -->
     <string name="error">Дошло је до грешке</string>
     <string name="synchronization_failed">Синхронизација није успела</string>
     <string name="operation_not_yet_supported">Није још подржано</string>
     <string name="error_revoking_ac">Грешка приликом уклањања приступа за %1$s</string>
     <string name="error_create_label">Грешка приликом креирања ознаке %1$s</string>
-    <string name="maintenance_mode">Сервер у режиму одржавања</string>
-    <string name="server_misconfigured">Сервер није добро конфигурисан</string>
     <string name="server_error">Грешка на серверу</string>
-    <string name="shared_error">Дељење садржаја од апликација треће стране још није у потпуности подржано. Пробајте прво да преузмете садржај у целости и онда га поделите из менаџера фајлова или из галерије.</string>
     <string name="error_edit_activity_killed_by_android">Андроид нам је довршио режим измена пошто су системски ресурси требали другим апликацијама.</string>
 
     <string name="error_dialog_title">О, не - шта сад? 🙁</string>
@@ -245,7 +219,6 @@
     <string name="error_action_server_logs">Дневник са сервера</string>
     <string name="error_action_install">Инсталирај</string>
     <string name="error_action_report_issue">Пријави</string>
-    <string name="info_box_maintenance_mode">Сервер у режиму одржавања</string>
     <string name="info_box_version_not_supported">Серверска верзија %1$s није подржана, ажурирајте на %2$s</string>
     <string name="share_link">Веза дељења</string>
     <string name="archive_cards">Архивирај картице</string>
@@ -253,7 +226,6 @@
     <string name="manage_accounts">Управљање налозима</string>
     <string name="manage_list">Управљај списком</string>
     <string name="simple_reply">Одговори</string>
-    <string name="error_while_uploading_attachment">Грешка приликом отпремања прилога: %1$s</string>
     <string name="append_text_to_description">Придодај на опис</string>
     <string name="add_text_as_comment">Додај као коментар</string>
     <string name="progress_count">%1$d од %2$d</string>
@@ -273,7 +245,6 @@
 
     <string name="widget_stack_title">Излистај</string>
     <string name="widget_stack_header_icon">Заглавње иконице виџета</string>
-    <string name="widget_stack_placeholder_icon">Иконица виџета</string>
     <string name="select_stack">Одабир списка</string>
     <string name="project_type_deck_board">Табла Шпила</string>
     <string name="project_type_deck_card">Картица Шпила</string>
@@ -288,5 +259,24 @@
     <string name="single_card">Засебна картица</string>
     <string name="project_type_room">Причаоница</string>
     <string name="simple_move">Помери</string>
-    <string name="cannot_upload_files_without_permission">Не могу да отпремим фајлове без дозвола</string>
-</resources>
+    <string name="clone_cards">Клонирај картице</string>
+    <string name="simple_clone">Клонирај</string>
+    <string name="user_avatar">Кориснички аватар</string>
+    <string name="simple_unassign">Уклони доделу</string>
+    <string name="simple_contact">Контакт</string>
+    <string name="simple_file">Фајл</string>
+    <string name="simple_camera">Камера</string>
+    <string name="take_photo">Сликај</string>
+    <string name="take_photo_switch_camera">Пребаци камеру</string>
+    <string name="show_all_contacts">Прикажи све контакте</string>
+    <string name="show_all_files">Прикажи све фајлове</string>
+    <string name="recent">Недавно</string>
+    <string name="upload_a_new_attachment">Отпреми нови прилог</string>
+    <string name="contacts">Контакти</string>
+    <string name="downloads">Преузимања</string>
+    <string name="files">Фајлови</string>
+    <string name="gallery">Галерија</string>
+    <string name="simple_attach">приложи</string>
+    <string name="add_stack_widget">Додај виџет листе</string>
+    <string name="edit_description">Уреди опис</string>
+    </resources>

@@ -1,11 +1,12 @@
 package it.niedermann.nextcloud.deck.persistence.sync.helpers.providers;
 
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import it.niedermann.nextcloud.deck.DeckLog;
-import it.niedermann.nextcloud.deck.api.IResponseCallback;
+import it.niedermann.nextcloud.deck.api.ResponseCallback;
 import it.niedermann.nextcloud.deck.model.Card;
 import it.niedermann.nextcloud.deck.model.ocs.projects.OcsProject;
 import it.niedermann.nextcloud.deck.model.ocs.projects.OcsProjectList;
@@ -14,15 +15,16 @@ import it.niedermann.nextcloud.deck.persistence.sync.adapters.ServerAdapter;
 import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.DataBaseAdapter;
 
 public class OcsProjectDataProvider extends AbstractSyncDataProvider<OcsProject> {
-    private Card card;
+    private final Card card;
+
     public OcsProjectDataProvider(AbstractSyncDataProvider<?> parent, Card card) {
         super(parent);
         this.card = card;
     }
 
     @Override
-    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<List<OcsProject>> responder, Date lastSync) {
-        serverAdapter.getProjectsForCard(card.getId(), new IResponseCallback<OcsProjectList>(responder.getAccount()) {
+    public void getAllFromServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<List<OcsProject>> responder, Instant lastSync) {
+        serverAdapter.getProjectsForCard(card.getId(), new ResponseCallback<>(responder.getAccount()) {
             @Override
             public void onResponse(OcsProjectList response) {
                 responder.onResponse(response.getProjects());
@@ -32,6 +34,7 @@ public class OcsProjectDataProvider extends AbstractSyncDataProvider<OcsProject>
             public void onError(Throwable throwable) {
                 super.onError(throwable);
                 // dont break the sync!
+                // TODO i got here HTTP 404 once, maybe this should be considered?
                 DeckLog.logError(throwable);
                 responder.onResponse(Collections.emptyList());
             }
@@ -65,12 +68,26 @@ public class OcsProjectDataProvider extends AbstractSyncDataProvider<OcsProject>
         }
     }
 
+    @Override
+    public void handleDeletes(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, List<OcsProject> entitiesFromServer) {
+        if (entitiesFromServer.isEmpty()){
+            dataBaseAdapter.deleteProjectResourcesByCardIdDirectly(card.getLocalId());
+            return;
+        }
+        List<Long> remoteProjectIDs = entitiesFromServer.stream()
+                .map(OcsProject::getId)
+                .collect(Collectors.toList());
+        if (!remoteProjectIDs.isEmpty()) {
+            dataBaseAdapter.deleteProjectResourcesByCardIdExceptGivenProjectIdsDirectly(accountId, card.getLocalId(), remoteProjectIDs);
+        }
+    }
+
     private void updateResources(DataBaseAdapter dataBaseAdapter, Long accountId, OcsProject entity) {
         if (entity.getResources() != null) {
             for (OcsProjectResource resource : entity.getResources()) {
                 resource.setProjectId(entity.getLocalId());
                 resource.setLocalId(dataBaseAdapter.createProjectResourceDirectly(accountId, resource));
-                if ("deck-card".equals(resource.getType())){
+                if ("deck-card".equals(resource.getType())) {
                     dataBaseAdapter.assignCardToProjectIfMissng(accountId, entity.getLocalId(), resource.getId());
                 }
             }
@@ -78,22 +95,22 @@ public class OcsProjectDataProvider extends AbstractSyncDataProvider<OcsProject>
     }
 
     @Override
-    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<OcsProject> responder, OcsProject entity) {
+    public void createOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<OcsProject> responder, OcsProject entity) {
         // Do Nothing
     }
 
     @Override
-    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, IResponseCallback<OcsProject> callback, OcsProject entity) {
+    public void updateOnServer(ServerAdapter serverAdapter, DataBaseAdapter dataBaseAdapter, long accountId, ResponseCallback<OcsProject> callback, OcsProject entity) {
         // Do Nothing
     }
 
     @Override
-    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, IResponseCallback<Void> callback, OcsProject entity, DataBaseAdapter dataBaseAdapter) {
+    public void deleteOnServer(ServerAdapter serverAdapter, long accountId, ResponseCallback<Void> callback, OcsProject entity, DataBaseAdapter dataBaseAdapter) {
         // Do Nothing
     }
 
     @Override
-    public List<OcsProject> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Date lastSync) {
+    public List<OcsProject> getAllChangedFromDB(DataBaseAdapter dataBaseAdapter, long accountId, Instant lastSync) {
         return Collections.emptyList();
     }
 }
